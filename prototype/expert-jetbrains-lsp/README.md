@@ -60,7 +60,7 @@ Verified locally on 2026-08-02 with Expert v0.1.8
 | --- | --- | --- | --- |
 | Direct `expert --stdio` initialization | Pass: Expert 0.1.8 shown running | Pending | Pending |
 | Diagnostics | Pass: undefined local function reported | Pending | Pending |
-| Missing executable leaves local file support active | Pending | Pending | Pending |
+| Missing executable leaves local file support active | Pass; raw startup stack trace needs production UX | Pending | Pending |
 | Negotiated capabilities recorded | Pass: captured by transport harness | Pending | Pending |
 
 Completion, definition, hover, formatting, document/workspace symbols,
