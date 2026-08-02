@@ -71,7 +71,7 @@ Host IDE.
 | Capability | IntelliJ IDEA | GoLand | PyCharm |
 | --- | --- | --- | --- |
 | Completion | Pass: `String.up` offers `upcase` | Pending | Pending |
-| Definition | Pending | Pending | Pending |
+| Definition | Pass for project-local `normalize/1`; no navigation for `String.upcase/1` | Pending | Pending |
 | Hover | Pending | Pending | Pending |
 | Formatting | Pending | Pending | Pending |
 | Document symbols | Pending | Pending | Pending |
