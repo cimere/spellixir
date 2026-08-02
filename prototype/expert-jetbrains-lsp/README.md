@@ -73,7 +73,7 @@ Host IDE.
 | Completion | Pass: `String.up` offers `upcase` | Pending | Pending |
 | Definition | Pass for project-local `normalize/1`; no navigation for `String.upcase/1` | Pending | Pending |
 | Hover | Pass: `String.upcase/1` signature, spec, docs, and examples; undocumented local helper has no hover | Pending | Pending |
-| Formatting | Pending | Pending | Pending |
+| Formatting | Fail: Reformat Code leaves malformed fixture unchanged | Not tested after decisive failure | Not tested after decisive failure |
 | Document symbols | Pending | Pending | Pending |
 | Workspace symbols | Pending | Pending | Pending |
 | References | Pending | Pending | Pending |
@@ -82,3 +82,17 @@ Host IDE.
 Completion, definition, hover, formatting, document/workspace symbols,
 references, code actions, toolchain variants, restart behavior, and indexing
 latency remain required by the ticket after this first proving slice.
+
+## Verdict
+
+Do not adopt Expert as the preferred Semantic Backend candidate under the
+ticket's all-capabilities-must-pass gate. Direct initialization, diagnostics,
+and missing-executable isolation passed across all Supported Hosts. IntelliJ
+completion, project-local definition, and standard-library hover also passed,
+with no standard-library source navigation. The decisive failure is document
+formatting: Expert advertises the capability, but JetBrains Reformat Code left
+the deliberately malformed fixture unchanged through the direct adapter.
+
+The release path therefore remains Native Core-only. This prototype does not
+rule Expert out forever; a later effort may diagnose the formatting bridge and
+define a narrower capability contract before reconsidering adoption.
