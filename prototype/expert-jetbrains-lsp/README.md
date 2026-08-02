@@ -72,7 +72,7 @@ Host IDE.
 | --- | --- | --- | --- |
 | Completion | Pass: `String.up` offers `upcase` | Pending | Pending |
 | Definition | Pass for project-local `normalize/1`; no navigation for `String.upcase/1` | Pending | Pending |
-| Hover | Pending | Pending | Pending |
+| Hover | Pass: `String.upcase/1` signature, spec, docs, and examples; undocumented local helper has no hover | Pending | Pending |
 | Formatting | Pending | Pending | Pending |
 | Document symbols | Pending | Pending | Pending |
 | Workspace symbols | Pending | Pending | Pending |

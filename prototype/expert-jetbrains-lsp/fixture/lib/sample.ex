@@ -7,6 +7,8 @@ defmodule SpellixirExpertFixture.Sample do
 
   defp normalize(name), do: String.upcase(name)
 
+  def formatting_fixture( value),do:normalize( value )
+
   def diagnostic_fixture do
     definitely_missing_function()
   end
