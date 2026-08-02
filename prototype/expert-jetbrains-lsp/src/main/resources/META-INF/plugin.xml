@@ -1,0 +1,18 @@
+<idea-plugin>
+  <id>com.cimere.spellixir.prototype.expert</id>
+  <name>Spellixir Expert Prototype</name>
+  <vendor>cimere</vendor>
+
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.lsp</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileType
+        name="Elixir Prototype"
+        implementationClass="com.cimere.spellixir.prototype.ElixirPrototypeFileType"
+        fieldName="INSTANCE"
+        extensions="ex;exs" />
+    <platform.lsp.integrationProvider
+        implementation="com.cimere.spellixir.prototype.ExpertIntegrationProvider" />
+  </extensions>
+</idea-plugin>
