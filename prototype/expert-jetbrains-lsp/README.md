@@ -73,7 +73,7 @@ Host IDE.
 | Completion | Pass: `String.up` offers `upcase` | Pending | Pending |
 | Definition | Pass for project-local `normalize/1`; no navigation for `String.upcase/1` | Pending | Pending |
 | Hover | Pass: `String.upcase/1` signature, spec, docs, and examples; undocumented local helper has no hover | Pending | Pending |
-| Formatting | Pending: first fixture was considered already formatted | Pending | Pending |
+| Formatting | Outside Semantic Backend gate: Expert returns edits, but Reformat Code does not apply them | Outside Semantic Backend gate | Outside Semantic Backend gate |
 | Document symbols | Pending | Pending | Pending |
 | Workspace symbols | Pending | Pending | Pending |
 | References | Pending | Pending | Pending |
@@ -82,3 +82,13 @@ Host IDE.
 Completion, definition, hover, formatting, document/workspace symbols,
 references, code actions, toolchain variants, restart behavior, and indexing
 latency remain required by the ticket after this first proving slice.
+
+### Formatting ownership
+
+Formatting is not part of the Semantic Backend adoption gate. For a fixture
+with irregular spaces, Expert returned correct LSP text edits while JetBrains
+Reformat Code reported that no lines changed. ElixirIJ's working formatting is
+not routed through Expert; it registers a separate formatting service that
+runs `mix format` on a temporary file. The Elixir Plugin should use the same
+ownership boundary: a dedicated optional Formatter Service, independent of
+Expert and the Native Core.
