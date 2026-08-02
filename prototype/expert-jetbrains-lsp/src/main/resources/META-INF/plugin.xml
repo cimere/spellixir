@@ -4,6 +4,7 @@
   <vendor>cimere</vendor>
 
   <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.ultimate</depends>
   <depends>com.intellij.modules.lsp</depends>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -11,6 +12,7 @@
         name="Elixir Prototype"
         implementationClass="com.cimere.spellixir.prototype.ElixirPrototypeFileType"
         fieldName="INSTANCE"
+        language="ElixirPrototype"
         extensions="ex;exs" />
     <platform.lsp.integrationProvider
         implementation="com.cimere.spellixir.prototype.ExpertIntegrationProvider" />

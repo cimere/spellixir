@@ -12,6 +12,7 @@ prototype_initialized='{"jsonrpc":"2.0","method":"initialized","params":{}}'
 prototype_registered='{"jsonrpc":"2.0","id":1,"result":null}'
 prototype_open="{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"$prototype_document_uri\",\"languageId\":\"elixir\",\"version\":1,\"text\":$prototype_text}}}"
 prototype_format="{\"jsonrpc\":\"2.0\",\"id\":\"format-1\",\"method\":\"textDocument/formatting\",\"params\":{\"textDocument\":{\"uri\":\"$prototype_document_uri\"},\"options\":{\"tabSize\":2,\"insertSpaces\":true}}}"
+prototype_symbols="{\"jsonrpc\":\"2.0\",\"id\":\"symbols-1\",\"method\":\"textDocument/documentSymbol\",\"params\":{\"textDocument\":{\"uri\":\"$prototype_document_uri\"}}}"
 prototype_shutdown='{"jsonrpc":"2.0","id":"shutdown-1","method":"shutdown","params":null}'
 prototype_exit='{"jsonrpc":"2.0","method":"exit","params":null}'
 prototype_output="$(mktemp)"
@@ -40,19 +41,21 @@ send_message() {
     sleep 5
     send_message "$prototype_format"
     sleep 5
+    send_message "$prototype_symbols"
+    sleep 5
     send_message "$prototype_shutdown"
     sleep 1
     send_message "$prototype_exit"
   } | "$prototype_expert" --stdio >"$prototype_output" 2>"$prototype_error"
 ) || true
 
-if grep -Fq '"id":"format-1"' "$prototype_output"; then
-  echo "Expert formatting response:"
-  tr '\r' '\n' <"$prototype_output" | grep -F '"id":"format-1"' | head -n 1
+if grep -Fq '"id":"format-1"' "$prototype_output" && grep -Fq '"id":"symbols-1"' "$prototype_output"; then
+  echo "Expert formatting and document-symbol responses:"
+  tr '\r' '\n' <"$prototype_output" | grep -E '"id":"(format|symbols)-1"' | head -n 2
   exit 0
 fi
 
-echo "FAIL: Expert did not return a formatting response" >&2
+echo "FAIL: Expert did not return both probe responses" >&2
 cat "$prototype_error" >&2
 cat "$prototype_output" >&2
 exit 1
