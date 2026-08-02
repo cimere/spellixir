@@ -58,10 +58,10 @@ Verified locally on 2026-08-02 with Expert v0.1.8
 
 | Check | IntelliJ IDEA | GoLand | PyCharm |
 | --- | --- | --- | --- |
-| Direct `expert --stdio` initialization | Pending | Pending | Pending |
-| Diagnostics | Pending | Pending | Pending |
+| Direct `expert --stdio` initialization | Pass: Expert 0.1.8 shown running | Pending | Pending |
+| Diagnostics | Pass: undefined local function reported | Pending | Pending |
 | Missing executable leaves local file support active | Pending | Pending | Pending |
-| Negotiated capabilities recorded | Pending | Pending | Pending |
+| Negotiated capabilities recorded | Pass: captured by transport harness | Pending | Pending |
 
 Completion, definition, hover, formatting, document/workspace symbols,
 references, code actions, toolchain variants, restart behavior, and indexing
