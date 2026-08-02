@@ -63,6 +63,22 @@ Verified locally on 2026-08-02 with Expert v0.1.8
 | Missing executable leaves local file support active | Pass; raw startup stack trace needs production UX | Pass; raw startup stack trace needs production UX | Pass; raw startup stack trace needs production UX |
 | Negotiated capabilities recorded | Pass: captured by transport harness | Pending | Pending |
 
+### Semantic capability checks
+
+An advertised capability is not counted as passing until exercised through a
+Host IDE.
+
+| Capability | IntelliJ IDEA | GoLand | PyCharm |
+| --- | --- | --- | --- |
+| Completion | Pass: `String.up` offers `upcase` | Pending | Pending |
+| Definition | Pending | Pending | Pending |
+| Hover | Pending | Pending | Pending |
+| Formatting | Pending | Pending | Pending |
+| Document symbols | Pending | Pending | Pending |
+| Workspace symbols | Pending | Pending | Pending |
+| References | Pending | Pending | Pending |
+| Code actions | Pending | Pending | Pending |
+
 Completion, definition, hover, formatting, document/workspace symbols,
 references, code actions, toolchain variants, restart behavior, and indexing
 latency remain required by the ticket after this first proving slice.
