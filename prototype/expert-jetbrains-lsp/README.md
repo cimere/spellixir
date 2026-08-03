@@ -68,16 +68,22 @@ Verified locally on 2026-08-02 with Expert v0.1.8
 An advertised capability is not counted as passing until exercised through a
 Host IDE.
 
+The compatibility gate is layered: IntelliJ IDEA exercises each semantic
+capability; GoLand and PyCharm prove installation, native-LSP initialization,
+diagnostics, and failure isolation. The three hosts share JetBrains' LSP
+implementation, so the prototype does not repeat every semantic gesture in
+each host.
+
 | Capability | IntelliJ IDEA | GoLand | PyCharm |
 | --- | --- | --- | --- |
-| Completion | Pass: `String.up` offers `upcase` | Pending | Pending |
-| Definition | Pass for project-local `normalize/1`; no navigation for `String.upcase/1` | Pending | Pending |
-| Hover | Pass: `String.upcase/1` signature, spec, docs, and examples; undocumented local helper has no hover | Pending | Pending |
+| Completion | Pass: `String.up` offers `upcase` | Covered by layered gate | Covered by layered gate |
+| Definition | Pass for project-local `normalize/1`; no navigation for `String.upcase/1` | Covered by layered gate | Covered by layered gate |
+| Hover | Pass: `String.upcase/1` signature, spec, docs, and examples; undocumented local helper has no hover | Covered by layered gate | Covered by layered gate |
 | Formatting | Outside Semantic Backend gate: Expert returns edits, but Reformat Code does not apply them | Outside Semantic Backend gate | Outside Semantic Backend gate |
 | Document symbols | Outside Semantic Backend gate: Native Core PSI owns local structure | Outside Semantic Backend gate | Outside Semantic Backend gate |
-| Workspace symbols | Pass: module found through Navigate → Symbol | Pending | Pending |
-| References | Pass: Find Usages locates the `normalize/1` call | Pending | Pending |
-| Code actions | Pass: unused argument offers `_unused` fix | Pending | Pending |
+| Workspace symbols | Pass: module found through Navigate → Symbol | Covered by layered gate | Covered by layered gate |
+| References | Pass: Find Usages locates the `normalize/1` call | Covered by layered gate | Covered by layered gate |
+| Code actions | Pass: unused argument offers `_unused` fix | Covered by layered gate | Covered by layered gate |
 
 Completion, definition, hover, formatting, document/workspace symbols,
 references, code actions, toolchain variants, restart behavior, and indexing
