@@ -77,7 +77,7 @@ Host IDE.
 | Document symbols | Outside Semantic Backend gate: Native Core PSI owns local structure | Outside Semantic Backend gate | Outside Semantic Backend gate |
 | Workspace symbols | Pass: module found through Navigate → Symbol | Pending | Pending |
 | References | Pass: Find Usages locates the `normalize/1` call | Pending | Pending |
-| Code actions | Pending | Pending | Pending |
+| Code actions | Pass: unused argument offers `_unused` fix | Pending | Pending |
 
 Completion, definition, hover, formatting, document/workspace symbols,
 references, code actions, toolchain variants, restart behavior, and indexing
