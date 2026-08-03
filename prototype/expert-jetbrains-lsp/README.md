@@ -63,6 +63,16 @@ Verified locally on 2026-08-02 with Expert v0.1.8
 | Missing executable leaves local file support active | Pass; raw startup stack trace needs production UX | Pass; raw startup stack trace needs production UX | Pass; raw startup stack trace needs production UX |
 | Negotiated capabilities recorded | Pass: captured by transport harness | Pending | Pending |
 
+### Toolchain and lifecycle boundary
+
+The missing Expert executable produces an isolated LSP startup failure while
+local file editing remains available in every Supported Host. With Expert
+present and Homebrew removed from `PATH`, Expert still discovered a working
+project toolchain and provided diagnostics. Forcing an invalid
+`elixirExecutablePath` requires LSP settings plumbing, which belongs to the
+later production lifecycle/UX decision and is excluded from this throwaway
+adapter.
+
 ### Semantic capability checks
 
 An advertised capability is not counted as passing until exercised through a
