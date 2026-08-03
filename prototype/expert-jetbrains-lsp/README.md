@@ -74,7 +74,7 @@ Host IDE.
 | Definition | Pass for project-local `normalize/1`; no navigation for `String.upcase/1` | Pending | Pending |
 | Hover | Pass: `String.upcase/1` signature, spec, docs, and examples; undocumented local helper has no hover | Pending | Pending |
 | Formatting | Outside Semantic Backend gate: Expert returns edits, but Reformat Code does not apply them | Outside Semantic Backend gate | Outside Semantic Backend gate |
-| Document symbols | Pending | Pending | Pending |
+| Document symbols | Outside Semantic Backend gate: Native Core PSI owns local structure | Outside Semantic Backend gate | Outside Semantic Backend gate |
 | Workspace symbols | Pending | Pending | Pending |
 | References | Pending | Pending | Pending |
 | Code actions | Pending | Pending | Pending |
@@ -92,3 +92,12 @@ not routed through Expert; it registers a separate formatting service that
 runs `mix format` on a temporary file. The Elixir Plugin should use the same
 ownership boundary: a dedicated optional Formatter Service, independent of
 Expert and the Native Core.
+
+### Document-structure ownership
+
+Document structure is not part of the Semantic Backend adoption gate. Expert
+returns a complete `textDocument/documentSymbol` tree for the fixture, but the
+minimal placeholder file type has no Structure view while ElixirIJ's full
+parser/PSI registration exposes one. The Native Core's PSI should remain the
+authoritative source of local document structure; Expert may augment it with
+project-wide workspace-symbol search.
