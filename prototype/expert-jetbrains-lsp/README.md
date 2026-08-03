@@ -75,7 +75,7 @@ Host IDE.
 | Hover | Pass: `String.upcase/1` signature, spec, docs, and examples; undocumented local helper has no hover | Pending | Pending |
 | Formatting | Outside Semantic Backend gate: Expert returns edits, but Reformat Code does not apply them | Outside Semantic Backend gate | Outside Semantic Backend gate |
 | Document symbols | Outside Semantic Backend gate: Native Core PSI owns local structure | Outside Semantic Backend gate | Outside Semantic Backend gate |
-| Workspace symbols | Pending | Pending | Pending |
+| Workspace symbols | Pass: module found through Navigate → Symbol | Pending | Pending |
 | References | Pending | Pending | Pending |
 | Code actions | Pending | Pending | Pending |
 
