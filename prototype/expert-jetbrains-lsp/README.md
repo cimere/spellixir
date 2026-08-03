@@ -76,7 +76,7 @@ Host IDE.
 | Formatting | Outside Semantic Backend gate: Expert returns edits, but Reformat Code does not apply them | Outside Semantic Backend gate | Outside Semantic Backend gate |
 | Document symbols | Outside Semantic Backend gate: Native Core PSI owns local structure | Outside Semantic Backend gate | Outside Semantic Backend gate |
 | Workspace symbols | Pass: module found through Navigate → Symbol | Pending | Pending |
-| References | Pending | Pending | Pending |
+| References | Pass: Find Usages locates the `normalize/1` call | Pending | Pending |
 | Code actions | Pending | Pending | Pending |
 
 Completion, definition, hover, formatting, document/workspace symbols,
