@@ -117,3 +117,18 @@ minimal placeholder file type has no Structure view while ElixirIJ's full
 parser/PSI registration exposes one. The Native Core's PSI should remain the
 authoritative source of local document structure; Expert may augment it with
 project-wide workspace-symbol search.
+
+## Verdict
+
+Adopt Expert as the preferred optional Semantic Backend candidate, initially
+through explicit opt-in and a user-configured executable. The direct adapter
+passes cross-host initialization, diagnostics, and failure isolation, and the
+IntelliJ deep pass covers completion, project-local definition, hover,
+workspace symbols, references, and code actions.
+
+The Native Core remains independently useful and authoritative for parsing,
+PSI, highlighting, and document structure. A separate optional Formatter
+Service owns `mix format`. Production lifecycle work must add clear error UX,
+toolchain/executable configuration, trust controls, restart behavior, and
+updates without making Expert mandatory. Standard-library source navigation
+requires a configured `elixirSourcePath`.
