@@ -1,0 +1,16 @@
+<idea-plugin>
+  <id>com.cimere.spellixir</id>
+  <name>Spellixir</name>
+  <vendor>cimere</vendor>
+
+  <depends>com.intellij.modules.platform</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileType
+        name="Elixir"
+        implementationClass="com.cimere.spellixir.lang.ElixirFileType"
+        fieldName="INSTANCE"
+        language="Elixir"
+        extensions="ex;exs" />
+  </extensions>
+</idea-plugin>
