@@ -12,5 +12,8 @@
         fieldName="INSTANCE"
         language="Elixir"
         extensions="ex;exs" />
+    <lang.syntaxHighlighterFactory
+        language="Elixir"
+        implementationClass="com.cimere.spellixir.lang.ElixirSyntaxHighlighterFactory" />
   </extensions>
 </idea-plugin>
