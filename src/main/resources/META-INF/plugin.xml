@@ -15,5 +15,8 @@
     <lang.syntaxHighlighterFactory
         language="Elixir"
         implementationClass="com.cimere.spellixir.lang.ElixirSyntaxHighlighterFactory" />
+    <lang.parserDefinition
+        language="Elixir"
+        implementationClass="com.cimere.spellixir.lang.ElixirParserDefinition" />
   </extensions>
 </idea-plugin>

@@ -1,10 +1,40 @@
 package com.cimere.spellixir.lang
 
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 
 class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
+    fun testOpeningElixirFileKeepsRegisteredEditorHighlighting() {
+        val source = "fn value -> {:ok, Demo, 42} end"
+        val file = myFixture.tempDirFixture.createFile("sample.ex")
+        WriteAction.run<RuntimeException> { VfsUtil.saveText(file, source) }
+
+        myFixture.configureFromExistingVirtualFile(file)
+
+        assertSame(ElixirFileType, myFixture.file.fileType)
+        assertEquals(ElixirLanguage, myFixture.file.language)
+        assertEquals(
+            listOf(
+                "fn" to "KEYWORD",
+                "value" to "IDENTIFIER",
+                "->" to "OPERATOR",
+                "{" to "BRACES",
+                ":ok" to "ATOM",
+                "," to "OPERATOR",
+                "Demo" to "ALIAS",
+                "," to "OPERATOR",
+                "42" to "NUMBER",
+                "}" to "BRACES",
+                "end" to "KEYWORD",
+            ),
+            editorTokens(source),
+        )
+    }
+
     fun testHighlightsRepresentativeCoreLexicalFormsThroughPlatformRegistration() {
         val source = "defmodule Demo do @answer :ok + 0x2A ?x # comment"
 
@@ -68,5 +98,18 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
             lexer.advance()
         }
         return highlightedTokens
+    }
+
+    private fun editorTokens(source: String): List<Pair<String, String>> {
+        val iterator = myFixture.editor.highlighter.createIterator(0)
+        val tokens = mutableListOf<Pair<String, String>>()
+        while (!iterator.atEnd()) {
+            val tokenType = iterator.tokenType?.toString()
+            if (tokenType != null && tokenType != "WHITE_SPACE") {
+                tokens += source.substring(iterator.start, iterator.end) to tokenType
+            }
+            iterator.advance()
+        }
+        return tokens
     }
 }
