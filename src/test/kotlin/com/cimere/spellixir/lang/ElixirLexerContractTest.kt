@@ -42,6 +42,28 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
         assertEquals("§", tokens[2].text)
     }
 
+    fun testCommentStopsAtLineBoundaryAndFollowingCodeRemainsTokenized() {
+        val source = "# Pattern matching\ncase value do\nend"
+
+        val tokens = lex(source)
+
+        assertEquals(source, tokens.joinToString("") { it.text })
+        assertEquals(
+            listOf(
+                "# Pattern matching" to "COMMENT",
+                "\n" to "WHITE_SPACE",
+                "case" to "IDENTIFIER",
+                " " to "WHITE_SPACE",
+                "value" to "IDENTIFIER",
+                " " to "WHITE_SPACE",
+                "do" to "KEYWORD",
+                "\n" to "WHITE_SPACE",
+                "end" to "KEYWORD",
+            ),
+            tokens.map { it.text to it.type.toString() },
+        )
+    }
+
     fun testRestartingAtEveryTokenBoundaryProducesEquivalentSuffix() {
         val source = "@answer :\"quoted atom\" Demo.Nested 0x2A 1.5e-2 ?\\u{1F680} § end"
         val complete = lex(source)

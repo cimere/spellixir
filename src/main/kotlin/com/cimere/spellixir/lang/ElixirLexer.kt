@@ -41,7 +41,7 @@ class ElixirLexer : LexerBase() {
         val first = buffer[tokenStart]
         tokenType = when {
             first.isWhitespace() -> scanWhile { it.isWhitespace() }.let { TokenType.WHITE_SPACE }
-            first == '#' -> scanToEnd().let { ElixirTokenTypes.COMMENT }
+            first == '#' -> scanComment().let { ElixirTokenTypes.COMMENT }
             first == '@' && charAt(tokenStart + 1).isIdentifierStart() -> {
                 scanIdentifier(tokenStart + 1)
                 ElixirTokenTypes.MODULE_ATTRIBUTE
@@ -91,8 +91,8 @@ class ElixirLexer : LexerBase() {
         while (tokenEnd < bufferEnd && predicate(buffer[tokenEnd])) tokenEnd++
     }
 
-    private fun scanToEnd() {
-        tokenEnd = bufferEnd
+    private fun scanComment() {
+        while (tokenEnd < bufferEnd && buffer[tokenEnd] != '\n' && buffer[tokenEnd] != '\r') tokenEnd++
     }
 
     private fun scanIdentifier(start: Int) {
