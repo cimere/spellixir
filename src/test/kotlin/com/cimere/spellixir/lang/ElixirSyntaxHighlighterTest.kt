@@ -1,6 +1,7 @@
 package com.cimere.spellixir.lang
 
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
@@ -8,6 +9,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 
 class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
+    fun testAliasesUseVisibleConstantStyle() {
+        assertSame(DefaultLanguageHighlighterColors.CONSTANT, ElixirSyntaxHighlighter.ALIAS.fallbackAttributeKey)
+    }
+
     fun testOpeningElixirFileKeepsRegisteredEditorHighlighting() {
         val source = "fn value -> {:ok, Demo, 42} end"
         val file = myFixture.tempDirFixture.createFile("sample.ex")
@@ -96,7 +101,7 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
                 "use" to "ELIXIR_KEYWORD",
                 "Ecto" to "ELIXIR_ALIAS",
                 "." to "ELIXIR_OPERATOR",
-                "Schema" to "ELIXIR_ALIAS",
+                "Schema" to "ELIXIR_MEMBER_ACCESS",
                 ";" to "ELIXIR_PUNCTUATION",
                 "schema" to "ELIXIR_IDENTIFIER",
                 "\"users\"" to "ELIXIR_STRING",
@@ -119,13 +124,13 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
                 "alias" to "ELIXIR_KEYWORD",
                 "Demo" to "ELIXIR_ALIAS",
                 "." to "ELIXIR_OPERATOR",
-                "User" to "ELIXIR_ALIAS",
+                "User" to "ELIXIR_MEMBER_ACCESS",
                 "," to "ELIXIR_PUNCTUATION",
                 "as:" to "ELIXIR_ATOM",
                 "User" to "ELIXIR_ALIAS",
                 ";" to "ELIXIR_PUNCTUATION",
                 "defp" to "ELIXIR_KEYWORD",
-                "valid?" to "ELIXIR_IDENTIFIER",
+                "valid?" to "ELIXIR_FUNCTION_DECLARATION",
                 "(" to "ELIXIR_PARENTHESES",
                 "value" to "ELIXIR_IDENTIFIER",
                 ")" to "ELIXIR_PARENTHESES",
@@ -144,6 +149,114 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
 
         assertEquals(
             source.split(" ").map { it to "ELIXIR_KEYWORD" },
+            highlight(source),
+        )
+    }
+
+    fun testHighlightsFunctionNamesAtDefinitionSites() {
+        val source = "def full_name(user), do: user.name; full_name(user)"
+
+        assertEquals(
+            listOf(
+                "def" to "ELIXIR_KEYWORD",
+                "full_name" to "ELIXIR_FUNCTION_DECLARATION",
+                "(" to "ELIXIR_PARENTHESES",
+                "user" to "ELIXIR_IDENTIFIER",
+                ")" to "ELIXIR_PARENTHESES",
+                "," to "ELIXIR_PUNCTUATION",
+                "do:" to "ELIXIR_ATOM",
+                "user" to "ELIXIR_IDENTIFIER",
+                "." to "ELIXIR_OPERATOR",
+                "name" to "ELIXIR_MEMBER_ACCESS",
+                ";" to "ELIXIR_PUNCTUATION",
+                "full_name" to "ELIXIR_IDENTIFIER",
+                "(" to "ELIXIR_PARENTHESES",
+                "user" to "ELIXIR_IDENTIFIER",
+                ")" to "ELIXIR_PARENTHESES",
+            ),
+            highlight(source),
+        )
+    }
+
+    fun testHighlightsQualifiedCallsAndFieldAccess() {
+        val source = "Map.get(%User{email: value}, :email); user.email; Enum.filter(items)"
+
+        assertEquals(
+            listOf(
+                "Map" to "ELIXIR_ALIAS",
+                "." to "ELIXIR_OPERATOR",
+                "get" to "ELIXIR_MEMBER_ACCESS",
+                "(" to "ELIXIR_PARENTHESES",
+                "%" to "ELIXIR_PUNCTUATION",
+                "User" to "ELIXIR_ALIAS",
+                "{" to "ELIXIR_BRACES",
+                "email:" to "ELIXIR_ATOM",
+                "value" to "ELIXIR_IDENTIFIER",
+                "}" to "ELIXIR_BRACES",
+                "," to "ELIXIR_PUNCTUATION",
+                ":email" to "ELIXIR_ATOM",
+                ")" to "ELIXIR_PARENTHESES",
+                ";" to "ELIXIR_PUNCTUATION",
+                "user" to "ELIXIR_IDENTIFIER",
+                "." to "ELIXIR_OPERATOR",
+                "email" to "ELIXIR_MEMBER_ACCESS",
+                ";" to "ELIXIR_PUNCTUATION",
+                "Enum" to "ELIXIR_ALIAS",
+                "." to "ELIXIR_OPERATOR",
+                "filter" to "ELIXIR_MEMBER_ACCESS",
+                "(" to "ELIXIR_PARENTHESES",
+                "items" to "ELIXIR_IDENTIFIER",
+                ")" to "ELIXIR_PARENTHESES",
+            ),
+            highlight(source),
+        )
+    }
+
+    fun testHighlightsLiteralsCapturesAndCorrectOperatorBoundaries() {
+        val source = "true false nil &1 value :: term \\\\ default"
+
+        assertEquals(
+            listOf(
+                "true" to "ELIXIR_LITERAL",
+                "false" to "ELIXIR_LITERAL",
+                "nil" to "ELIXIR_LITERAL",
+                "&1" to "ELIXIR_CAPTURE",
+                "value" to "ELIXIR_IDENTIFIER",
+                "::" to "ELIXIR_OPERATOR",
+                "term" to "ELIXIR_IDENTIFIER",
+                "\\\\" to "ELIXIR_OPERATOR",
+                "default" to "ELIXIR_IDENTIFIER",
+            ),
+            highlight(source),
+        )
+    }
+
+    fun testHighlightsHeredocsEscapesAndInterpolation() {
+        val source = "\"hello\\n#{name}\" \"\"\"long\ntext\"\"\""
+
+        assertEquals(
+            listOf(
+                "\"hello" to "ELIXIR_STRING",
+                "\\n" to "ELIXIR_ESCAPE",
+                "#{" to "ELIXIR_INTERPOLATION",
+                "name" to "ELIXIR_IDENTIFIER",
+                "}" to "ELIXIR_INTERPOLATION",
+                "\"" to "ELIXIR_STRING",
+                "\"\"\"long\ntext\"\"\"" to "ELIXIR_STRING",
+            ),
+            highlight(source),
+        )
+    }
+
+    fun testHighlightsGenericSigilsWithPairedDelimitersAndModifiers() {
+        val source = "~w(one two)a ~S|literal #{text}| ~JSON<{\"ok\":true}>u8"
+
+        assertEquals(
+            listOf(
+                "~w(one two)a" to "ELIXIR_SIGIL",
+                "~S|literal #{text}|" to "ELIXIR_SIGIL",
+                "~JSON<{\"ok\":true}>u8" to "ELIXIR_SIGIL",
+            ),
             highlight(source),
         )
     }

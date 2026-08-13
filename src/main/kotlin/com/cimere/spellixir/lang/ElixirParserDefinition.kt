@@ -27,6 +27,7 @@ class ElixirParserDefinition : ParserDefinition {
 
     override fun getStringLiteralElements(): TokenSet = TokenSet.create(
         ElixirTokenTypes.ATOM,
+        ElixirTokenTypes.LITERAL,
         ElixirTokenTypes.STRING,
         ElixirTokenTypes.CHARACTER,
     )

@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.cimere.spellixir"
-version = "0.1.3"
+version = "0.1.7"
 
 repositories {
     mavenCentral()

@@ -17,9 +17,9 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
         assertTrue(tokens.all { it.end > it.start })
         assertEquals(
             listOf(
-                "KEYWORD", "WHITE_SPACE", "IDENTIFIER", "PARENTHESES", "IDENTIFIER", "PARENTHESES",
+                "KEYWORD", "WHITE_SPACE", "FUNCTION_DECLARATION", "PARENTHESES", "IDENTIFIER", "PARENTHESES",
                 "PUNCTUATION", "WHITE_SPACE", "ATOM", "WHITE_SPACE", "BRACKETS", "ALIAS", "OPERATOR",
-                "ALIAS", "PUNCTUATION", "WHITE_SPACE", "BRACES", "ATOM", "PUNCTUATION", "WHITE_SPACE",
+                "MEMBER_ACCESS", "PUNCTUATION", "WHITE_SPACE", "BRACES", "ATOM", "PUNCTUATION", "WHITE_SPACE",
                 "IDENTIFIER", "WHITE_SPACE", "OPERATOR", "WHITE_SPACE", "NUMBER", "BRACES", "PUNCTUATION",
                 "WHITE_SPACE", "CHARACTER", "PUNCTUATION", "WHITE_SPACE", "MODULE_ATTRIBUTE", "PUNCTUATION",
                 "WHITE_SPACE", "ATOM", "BRACKETS", "WHITE_SPACE", "COMMENT",
@@ -65,7 +65,7 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
     }
 
     fun testRestartingAtEveryTokenBoundaryProducesEquivalentSuffix() {
-        val source = "@answer :\"quoted atom\" Demo.Nested 0x2A 1.5e-2 ?\\u{1F680} § end"
+        val source = "def full_name(value), do: \"hello\\n#{value}\" @answer Demo.Nested.call 0x2A ?\\u{1F680} § end"
         val complete = lex(source)
 
         for (tokenIndex in complete.indices) {
@@ -133,13 +133,46 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
                 "{" to "BRACES",
                 "email:" to "ATOM",
                 " " to "WHITE_SPACE",
-                "\"#{value}\"" to "STRING",
+                "\"" to "STRING",
+                "#{" to "INTERPOLATION",
+                "value" to "IDENTIFIER",
+                "}" to "INTERPOLATION",
+                "\"" to "STRING",
                 "}" to "BRACES",
                 "," to "PUNCTUATION",
                 " " to "WHITE_SPACE",
                 "~S|literal #{text}|" to "SIGIL",
             ),
             lex(source).map { it.text to it.type.toString() },
+        )
+    }
+
+    fun testCorpusVocabularyRemainsContiguousAndValid() {
+        val source = """
+            @callback fetch(%User{email: email}) :: {:ok, String.t()} | :error
+            def read!(value \\ nil), do: Enum.map([value], & &1)
+            message = "value=#{%{nested: value}}\n"
+            words = ~w(one two)a
+        """.trimIndent()
+
+        val tokens = lex(source)
+
+        assertEquals(source, tokens.joinToString("") { it.text })
+        assertTrue(tokens.all { it.end > it.start })
+        assertTrue(tokens.none { it.type == TokenType.BAD_CHARACTER })
+        assertTrue(
+            tokens.map { it.type }.containsAll(
+                listOf(
+                    ElixirTokenTypes.MODULE_ATTRIBUTE,
+                    ElixirTokenTypes.ALIAS,
+                    ElixirTokenTypes.MEMBER_ACCESS,
+                    ElixirTokenTypes.FUNCTION_DECLARATION,
+                    ElixirTokenTypes.CAPTURE,
+                    ElixirTokenTypes.INTERPOLATION,
+                    ElixirTokenTypes.ESCAPE,
+                    ElixirTokenTypes.SIGIL,
+                ),
+            ),
         )
     }
 
