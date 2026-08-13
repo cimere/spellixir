@@ -17,12 +17,12 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
         assertTrue(tokens.all { it.end > it.start })
         assertEquals(
             listOf(
-                "IDENTIFIER", "WHITE_SPACE", "IDENTIFIER", "PARENTHESES", "IDENTIFIER", "PARENTHESES",
-                "OPERATOR", "WHITE_SPACE", "KEYWORD", "OPERATOR", "WHITE_SPACE", "BRACKETS", "ALIAS",
-                "OPERATOR", "WHITE_SPACE", "BRACES", "ATOM", "OPERATOR", "WHITE_SPACE", "IDENTIFIER",
-                "WHITE_SPACE", "OPERATOR", "WHITE_SPACE", "NUMBER", "BRACES", "OPERATOR", "WHITE_SPACE",
-                "CHARACTER", "OPERATOR", "WHITE_SPACE", "MODULE_ATTRIBUTE", "OPERATOR", "WHITE_SPACE",
-                "ATOM", "BRACKETS", "WHITE_SPACE", "COMMENT",
+                "KEYWORD", "WHITE_SPACE", "IDENTIFIER", "PARENTHESES", "IDENTIFIER", "PARENTHESES",
+                "PUNCTUATION", "WHITE_SPACE", "ATOM", "WHITE_SPACE", "BRACKETS", "ALIAS", "OPERATOR",
+                "ALIAS", "PUNCTUATION", "WHITE_SPACE", "BRACES", "ATOM", "PUNCTUATION", "WHITE_SPACE",
+                "IDENTIFIER", "WHITE_SPACE", "OPERATOR", "WHITE_SPACE", "NUMBER", "BRACES", "PUNCTUATION",
+                "WHITE_SPACE", "CHARACTER", "PUNCTUATION", "WHITE_SPACE", "MODULE_ATTRIBUTE", "PUNCTUATION",
+                "WHITE_SPACE", "ATOM", "BRACKETS", "WHITE_SPACE", "COMMENT",
             ),
             tokens.map { it.type.toString() },
         )
@@ -52,7 +52,7 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
             listOf(
                 "# Pattern matching" to "COMMENT",
                 "\n" to "WHITE_SPACE",
-                "case" to "IDENTIFIER",
+                "case" to "KEYWORD",
                 " " to "WHITE_SPACE",
                 "value" to "IDENTIFIER",
                 " " to "WHITE_SPACE",
@@ -120,6 +120,26 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
         assertEquals(
             listOf("0xZZ" to "BAD_CHARACTER", ":ok" to "ATOM"),
             tokens.map { it.text to it.type.toString() },
+        )
+    }
+
+    fun testExampleSiteFormsKeepExpectedTokenBoundaries() {
+        val source = "%User{email: \"#{value}\"}, ~S|literal #{text}|"
+
+        assertEquals(
+            listOf(
+                "%" to "PUNCTUATION",
+                "User" to "ALIAS",
+                "{" to "BRACES",
+                "email:" to "ATOM",
+                " " to "WHITE_SPACE",
+                "\"#{value}\"" to "STRING",
+                "}" to "BRACES",
+                "," to "PUNCTUATION",
+                " " to "WHITE_SPACE",
+                "~S|literal #{text}|" to "SIGIL",
+            ),
+            lex(source).map { it.text to it.type.toString() },
         )
     }
 

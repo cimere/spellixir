@@ -24,9 +24,9 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
                 "->" to "OPERATOR",
                 "{" to "BRACES",
                 ":ok" to "ATOM",
-                "," to "OPERATOR",
+                "," to "PUNCTUATION",
                 "Demo" to "ALIAS",
-                "," to "OPERATOR",
+                "," to "PUNCTUATION",
                 "42" to "NUMBER",
                 "}" to "BRACES",
                 "end" to "KEYWORD",
@@ -40,7 +40,7 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
 
         assertEquals(
             listOf(
-                "defmodule" to "ELIXIR_IDENTIFIER",
+                "defmodule" to "ELIXIR_KEYWORD",
                 "Demo" to "ELIXIR_ALIAS",
                 "do" to "ELIXIR_KEYWORD",
                 "@answer" to "ELIXIR_MODULE_ATTRIBUTE",
@@ -64,7 +64,7 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
                 "[" to "ELIXIR_BRACKETS",
                 "{" to "ELIXIR_BRACES",
                 ":ready" to "ELIXIR_ATOM",
-                "," to "ELIXIR_OPERATOR",
+                "," to "ELIXIR_PUNCTUATION",
                 ":'quoted atom'" to "ELIXIR_ATOM",
                 "}" to "ELIXIR_BRACES",
                 "]" to "ELIXIR_BRACKETS",
@@ -81,6 +81,69 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
                 "§" to "ELIXIR_BAD_CHARACTER",
                 ":still_highlighted" to "ELIXIR_ATOM",
             ),
+            highlight(source),
+        )
+    }
+
+    fun testHighlightsRepresentativeEctoExampleForms() {
+        val source = "defmodule User do use Ecto.Schema; schema \"users\" do field first_name: :string end end"
+
+        assertEquals(
+            listOf(
+                "defmodule" to "ELIXIR_KEYWORD",
+                "User" to "ELIXIR_ALIAS",
+                "do" to "ELIXIR_KEYWORD",
+                "use" to "ELIXIR_KEYWORD",
+                "Ecto" to "ELIXIR_ALIAS",
+                "." to "ELIXIR_OPERATOR",
+                "Schema" to "ELIXIR_ALIAS",
+                ";" to "ELIXIR_PUNCTUATION",
+                "schema" to "ELIXIR_IDENTIFIER",
+                "\"users\"" to "ELIXIR_STRING",
+                "do" to "ELIXIR_KEYWORD",
+                "field" to "ELIXIR_IDENTIFIER",
+                "first_name:" to "ELIXIR_ATOM",
+                ":string" to "ELIXIR_ATOM",
+                "end" to "ELIXIR_KEYWORD",
+                "end" to "ELIXIR_KEYWORD",
+            ),
+            highlight(source),
+        )
+    }
+
+    fun testHighlightsDefinitionDirectivesPunctuationAndSigils() {
+        val source = "alias Demo.User, as: User; defp valid?(value), do: value =~ ~r/^[a-z]+$/iu"
+
+        assertEquals(
+            listOf(
+                "alias" to "ELIXIR_KEYWORD",
+                "Demo" to "ELIXIR_ALIAS",
+                "." to "ELIXIR_OPERATOR",
+                "User" to "ELIXIR_ALIAS",
+                "," to "ELIXIR_PUNCTUATION",
+                "as:" to "ELIXIR_ATOM",
+                "User" to "ELIXIR_ALIAS",
+                ";" to "ELIXIR_PUNCTUATION",
+                "defp" to "ELIXIR_KEYWORD",
+                "valid?" to "ELIXIR_IDENTIFIER",
+                "(" to "ELIXIR_PARENTHESES",
+                "value" to "ELIXIR_IDENTIFIER",
+                ")" to "ELIXIR_PARENTHESES",
+                "," to "ELIXIR_PUNCTUATION",
+                "do:" to "ELIXIR_ATOM",
+                "value" to "ELIXIR_IDENTIFIER",
+                "=~" to "ELIXIR_OPERATOR",
+                "~r/^[a-z]+$/iu" to "ELIXIR_SIGIL",
+            ),
+            highlight(source),
+        )
+    }
+
+    fun testHighlightsCoreControlFlowForms() {
+        val source = "case cond if unless for with try receive"
+
+        assertEquals(
+            source.split(" ").map { it to "ELIXIR_KEYWORD" },
             highlight(source),
         )
     }

@@ -62,6 +62,7 @@ class ElixirLexer : LexerBase() {
                 scanCharacter()
                 ElixirTokenTypes.CHARACTER
             }
+            first == '~' && scanSigil() -> ElixirTokenTypes.SIGIL
             first.isDigit() -> {
                 if (scanNumber()) ElixirTokenTypes.NUMBER else TokenType.BAD_CHARACTER
             }
@@ -69,19 +70,21 @@ class ElixirLexer : LexerBase() {
                 scanIdentifier(tokenStart)
                 val text = buffer.subSequence(tokenStart, tokenEnd).toString()
                 when {
+                    charAt(tokenEnd) == ':' && charAt(tokenEnd + 1) != ':' -> {
+                        tokenEnd++
+                        ElixirTokenTypes.ATOM
+                    }
                     text in KEYWORDS -> ElixirTokenTypes.KEYWORD
                     text in WORD_OPERATORS -> ElixirTokenTypes.OPERATOR
                     text in ATOM_LITERALS -> ElixirTokenTypes.ATOM
-                    first.isUpperCase() -> {
-                        scanAliasSegments()
-                        ElixirTokenTypes.ALIAS
-                    }
+                    first.isUpperCase() -> ElixirTokenTypes.ALIAS
                     else -> ElixirTokenTypes.IDENTIFIER
                 }
             }
             first == '(' || first == ')' -> ElixirTokenTypes.PARENTHESES
             first == '[' || first == ']' -> ElixirTokenTypes.BRACKETS
             first == '{' || first == '}' -> ElixirTokenTypes.BRACES
+            first == ',' || first == ';' || first == '%' -> ElixirTokenTypes.PUNCTUATION
             scanOperator() -> ElixirTokenTypes.OPERATOR
             else -> TokenType.BAD_CHARACTER
         }
@@ -110,12 +113,6 @@ class ElixirLexer : LexerBase() {
         }
     }
 
-    private fun scanAliasSegments() {
-        while (charAt(tokenEnd) == '.' && charAt(tokenEnd + 1).isUpperCase()) {
-            scanIdentifier(tokenEnd + 1)
-        }
-    }
-
     private fun scanQuoted(quoteOffset: Int) {
         val quote = buffer[quoteOffset]
         tokenEnd = quoteOffset + 1
@@ -139,6 +136,26 @@ class ElixirLexer : LexerBase() {
                 if (tokenEnd < bufferEnd) tokenEnd++
             }
         }
+    }
+
+    private fun scanSigil(): Boolean {
+        if (!charAt(tokenStart + 1).isLetter()) return false
+        val opening = charAt(tokenStart + 2)
+        val closing = SIGIL_DELIMITERS[opening] ?: return false
+        tokenEnd = tokenStart + 3
+        var depth = 1
+        var escaped = false
+        while (tokenEnd < bufferEnd) {
+            val current = buffer[tokenEnd++]
+            if (!escaped && opening != closing && current == opening) depth++
+            if (!escaped && current == closing && --depth == 0) {
+                scanWhile { it.isLetter() }
+                return true
+            }
+            escaped = current == '\\' && !escaped
+            if (current != '\\') escaped = false
+        }
+        return true
     }
 
     private fun scanNumber(): Boolean {
@@ -190,7 +207,12 @@ class ElixirLexer : LexerBase() {
     private fun Char.isOperatorCharacter(): Boolean = this in "+-*/\\|<>=~&^!.:"
 
     companion object {
-        private val KEYWORDS = setOf("after", "catch", "do", "else", "end", "fn", "rescue")
+        private val KEYWORDS = setOf(
+            "after", "alias", "case", "catch", "cond", "def", "defdelegate", "defexception", "defguard", "defimpl",
+            "defmacro", "defmodule", "defp", "defprotocol", "defstruct", "do", "else", "end", "fn",
+            "for", "if", "import", "quote", "receive", "require", "rescue", "try", "unless", "unquote",
+            "unquote_splicing", "use", "with",
+        )
         private val WORD_OPERATORS = setOf("and", "in", "not", "or", "when")
         private val ATOM_LITERALS = setOf("false", "nil", "true")
 
@@ -198,7 +220,11 @@ class ElixirLexer : LexerBase() {
             "..//", "<<<", ">>>", "<<~", "~>>", "<~>", "<|>", "+++", "---", "...", "^^^", "~~~",
             "&&&", "|||", "===", "!==", "**", "=~", "==", "!=", "<=", ">=", "&&", "||", "++", "--",
             "<>", "|>", "<~", "~>", "<-", "->", "=>", "::", "\\\\", "..", "//", "+", "-", "*",
-            "/", "=", "<", ">", "!", "^", "&", "|", "@", ".", ",", ";", "%", ":",
+            "/", "=", "<", ">", "!", "^", "&", "|", "@", ".", ":",
         ).sortedByDescending(String::length)
+
+        private val SIGIL_DELIMITERS = mapOf(
+            '/' to '/', '|' to '|', '"' to '"', '\'' to '\'', '(' to ')', '[' to ']', '{' to '}', '<' to '>',
+        )
     }
 }

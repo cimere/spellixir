@@ -23,7 +23,9 @@ class ElixirSyntaxHighlighter : SyntaxHighlighterBase() {
         val OPERATOR = key("ELIXIR_OPERATOR", DefaultLanguageHighlighterColors.OPERATION_SIGN)
         val NUMBER = key("ELIXIR_NUMBER", DefaultLanguageHighlighterColors.NUMBER)
         val CHARACTER = key("ELIXIR_CHARACTER", DefaultLanguageHighlighterColors.STRING)
+        val SIGIL = key("ELIXIR_SIGIL", DefaultLanguageHighlighterColors.STRING)
         val COMMENT = key("ELIXIR_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)
+        val PUNCTUATION = key("ELIXIR_PUNCTUATION", DefaultLanguageHighlighterColors.COMMA)
         val PARENTHESES = key("ELIXIR_PARENTHESES", DefaultLanguageHighlighterColors.PARENTHESES)
         val BRACKETS = key("ELIXIR_BRACKETS", DefaultLanguageHighlighterColors.BRACKETS)
         val BRACES = key("ELIXIR_BRACES", DefaultLanguageHighlighterColors.BRACES)
@@ -39,7 +41,9 @@ class ElixirSyntaxHighlighter : SyntaxHighlighterBase() {
             ElixirTokenTypes.OPERATOR to OPERATOR,
             ElixirTokenTypes.NUMBER to NUMBER,
             ElixirTokenTypes.CHARACTER to CHARACTER,
+            ElixirTokenTypes.SIGIL to SIGIL,
             ElixirTokenTypes.COMMENT to COMMENT,
+            ElixirTokenTypes.PUNCTUATION to PUNCTUATION,
             ElixirTokenTypes.PARENTHESES to PARENTHESES,
             ElixirTokenTypes.BRACKETS to BRACKETS,
             ElixirTokenTypes.BRACES to BRACES,
