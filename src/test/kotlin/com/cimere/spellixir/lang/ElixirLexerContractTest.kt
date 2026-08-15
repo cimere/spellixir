@@ -216,6 +216,7 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
     fun testUnfinishedQuotedFormsRemainContiguousAndRestartable() {
         val sources = listOf(
             "\"unfinished\\n#{value",
+            "\"unfinished\ndef complete, do: :ok",
             "'''\nunfinished #{%{value: item}}",
             "~r/foo #{call(%{value: item})}",
             "~S|literal #{not_interpolation}",

@@ -223,6 +223,10 @@ class ElixirLexer : LexerBase() {
         val quote = if (state == DOUBLE_STRING_STATE || state == DOUBLE_HEREDOC_STATE) '"' else '\''
         val closingLength = if (state.isHeredocState()) 3 else 1
         while (tokenEnd < bufferEnd) {
+            if (!state.isHeredocState() && buffer[tokenEnd].isLineBreak() && declarationStartsNextLine(tokenEnd)) {
+                nextState = DEFAULT_STATE
+                return
+            }
             if (buffer[tokenEnd] == '\\' || (buffer[tokenEnd] == '#' && charAt(tokenEnd + 1) == '{')) {
                 nextState = state
                 return
@@ -237,6 +241,16 @@ class ElixirLexer : LexerBase() {
             tokenEnd++
         }
         nextState = state
+    }
+
+    private fun declarationStartsNextLine(lineBreakOffset: Int): Boolean {
+        var offset = lineBreakOffset + 1
+        if (charAt(lineBreakOffset) == '\r' && charAt(offset) == '\n') offset++
+        while (charAt(offset) == ' ' || charAt(offset) == '\t') offset++
+        if (!charAt(offset).isIdentifierStart()) return false
+        val start = offset
+        while (charAt(offset).isIdentifierPart()) offset++
+        return buffer.subSequence(start, offset).toString() in DECLARATION_KEYWORDS
     }
 
     private fun scanCharacter() {
@@ -367,6 +381,7 @@ class ElixirLexer : LexerBase() {
     private fun charAt(offset: Int): Char = if (offset in 0 until bufferEnd) buffer[offset] else '\u0000'
 
     private fun Char.isIdentifierStart(): Boolean = this == '_' || isLetter()
+    private fun Char.isLineBreak(): Boolean = this == '\n' || this == '\r'
     private fun Char.isAtomStart(): Boolean = isIdentifierStart() || isOperatorCharacter()
     private fun Char.isIdentifierPart(): Boolean = this == '_' || isLetterOrDigit()
     private fun Char.isOperatorCharacter(): Boolean = this in "+-*/\\|<>=~&^!.:"
@@ -416,6 +431,7 @@ class ElixirLexer : LexerBase() {
         private const val INTERPOLATION_FLAG = 1 shl 24
 
         private val FUNCTION_DEFINITION_KEYWORDS = setOf("def", "defguard", "defmacro", "defp")
+        private val DECLARATION_KEYWORDS = FUNCTION_DEFINITION_KEYWORDS + "defmodule"
         private val KEYWORDS = setOf(
             "after", "alias", "case", "catch", "cond", "def", "defdelegate", "defexception", "defguard", "defimpl",
             "defmacro", "defmodule", "defp", "defprotocol", "defstruct", "do", "else", "end", "fn",

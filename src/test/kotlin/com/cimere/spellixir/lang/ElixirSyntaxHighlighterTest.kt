@@ -273,6 +273,27 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
         )
     }
 
+    fun testUnfinishedOrdinaryStringDoesNotCorruptFollowingDeclarationHighlighting() {
+        val source = "message = \"unfinished\ndef complete(value), do: :ok"
+
+        assertEquals(
+            listOf(
+                "message" to "ELIXIR_IDENTIFIER",
+                "=" to "ELIXIR_OPERATOR",
+                "\"unfinished" to "ELIXIR_STRING",
+                "def" to "ELIXIR_KEYWORD",
+                "complete" to "ELIXIR_FUNCTION_DECLARATION",
+                "(" to "ELIXIR_PARENTHESES",
+                "value" to "ELIXIR_IDENTIFIER",
+                ")" to "ELIXIR_PARENTHESES",
+                "," to "ELIXIR_PUNCTUATION",
+                "do:" to "ELIXIR_ATOM",
+                ":ok" to "ELIXIR_ATOM",
+            ),
+            highlight(source),
+        )
+    }
+
     private fun highlight(source: String): List<Pair<String, String>> {
         val highlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(ElixirLanguage, project, null)
         val lexer = highlighter.highlightingLexer
