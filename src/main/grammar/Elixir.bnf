@@ -47,9 +47,9 @@ callable_name ::= FUNCTION_DECLARATION | IDENTIFIER
 
 callable_body ::= comma do_atom expression | do_block
 
-do_block ::= do_keyword form* end_keyword
+do_block ::= do_keyword form* end_keyword?
 
-parameter_list ::= left_parenthesis [pattern (comma pattern)*] right_parenthesis
+parameter_list ::= left_parenthesis [pattern (comma pattern)* comma?] right_parenthesis?
 
 pattern ::= expression
 
@@ -78,15 +78,15 @@ private no_parentheses_argument ::= list_expression
                                   | capture_expression
                                   | reference_name
 
-argument_list ::= left_parenthesis [expression (comma expression)*] right_parenthesis
+argument_list ::= left_parenthesis [expression (comma expression)* comma?] right_parenthesis?
 
-list_expression ::= left_bracket [expression (comma expression)*] right_bracket
+list_expression ::= left_bracket [expression (comma expression)* comma?] right_bracket?
 
-tuple_expression ::= left_brace [expression (comma expression)*] right_brace
+tuple_expression ::= left_brace [expression (comma expression)* comma?] right_brace?
 
-map_expression ::= percent left_brace [expression (comma expression)*] right_brace
+map_expression ::= percent left_brace [expression (comma expression)* comma?] right_brace?
 
-parenthesized_expression ::= left_parenthesis expression right_parenthesis
+parenthesized_expression ::= left_parenthesis expression right_parenthesis?
 
 qualified_name ::= reference_name (dot reference_name)+
 
@@ -96,7 +96,7 @@ literal_expression ::= ATOM | LITERAL | NUMBER | CHARACTER | quoted_literal | si
 
 private quoted_literal ::= STRING (ESCAPE | interpolation)* STRING?
 private sigil_literal ::= SIGIL (ESCAPE | interpolation)* SIGIL?
-private interpolation ::= INTERPOLATION expression INTERPOLATION
+private interpolation ::= INTERPOLATION expression INTERPOLATION?
 
 capture_expression ::= CAPTURE | OPERATOR reference_name OPERATOR NUMBER
 
