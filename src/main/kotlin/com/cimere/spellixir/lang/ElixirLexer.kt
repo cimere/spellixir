@@ -53,10 +53,10 @@ class ElixirLexer : LexerBase() {
         if (tokenState.isInterpolationState() && first == '}') {
             if (tokenState == INTERPOLATION_STATE) {
                 nextState = DOUBLE_STRING_STATE
-                tokenType = ElixirTokenTypes.INTERPOLATION
+                tokenType = ElixirLexicalVocabulary.INTERPOLATION
             } else {
                 nextState = tokenState - 1
-                tokenType = ElixirTokenTypes.BRACES
+                tokenType = ElixirLexicalVocabulary.BRACES
             }
             return
         }
@@ -66,66 +66,66 @@ class ElixirLexer : LexerBase() {
                 nextState = tokenState
                 TokenType.WHITE_SPACE
             }
-            first == '#' -> scanComment().let { ElixirTokenTypes.COMMENT }
+            first == '#' -> scanComment().let { ElixirLexicalVocabulary.COMMENT }
             first == '@' && charAt(tokenStart + 1).isIdentifierStart() -> {
                 scanIdentifier(tokenStart + 1)
-                ElixirTokenTypes.MODULE_ATTRIBUTE
+                ElixirLexicalVocabulary.MODULE_ATTRIBUTE
             }
             first == ':' && charAt(tokenStart + 1) in listOf('\'', '"') -> {
                 scanQuoted(tokenStart + 1)
-                ElixirTokenTypes.ATOM
+                ElixirLexicalVocabulary.ATOM
             }
             first == ':' && charAt(tokenStart + 1) != ':' && charAt(tokenStart + 1).isAtomStart() -> {
                 scanAtom()
-                ElixirTokenTypes.ATOM
+                ElixirLexicalVocabulary.ATOM
             }
             first in listOf('\'', '"') -> {
                 if (startsHeredoc(first)) scanHeredoc(first) else scanStringStart(first)
-                ElixirTokenTypes.STRING
+                ElixirLexicalVocabulary.STRING
             }
             first == '?' && tokenStart + 1 < bufferEnd -> {
                 scanCharacter()
-                ElixirTokenTypes.CHARACTER
+                ElixirLexicalVocabulary.CHARACTER
             }
             first == '&' && charAt(tokenStart + 1).isDigit() -> {
                 scanWhile { it.isDigit() }
-                ElixirTokenTypes.CAPTURE
+                ElixirLexicalVocabulary.CAPTURE
             }
-            first == '~' && scanSigil() -> ElixirTokenTypes.SIGIL
+            first == '~' && scanSigil() -> ElixirLexicalVocabulary.SIGIL
             first.isDigit() -> {
-                if (scanNumber()) ElixirTokenTypes.NUMBER else TokenType.BAD_CHARACTER
+                if (scanNumber()) ElixirLexicalVocabulary.NUMBER else TokenType.BAD_CHARACTER
             }
             first.isIdentifierStart() -> {
                 scanIdentifier(tokenStart)
                 val text = buffer.subSequence(tokenStart, tokenEnd).toString()
                 when {
-                    tokenState == EXPECT_FUNCTION_NAME_STATE -> ElixirTokenTypes.FUNCTION_DECLARATION
-                    tokenState == EXPECT_MEMBER_STATE -> ElixirTokenTypes.MEMBER_ACCESS
+                    tokenState == EXPECT_FUNCTION_NAME_STATE -> ElixirLexicalVocabulary.FUNCTION_DECLARATION
+                    tokenState == EXPECT_MEMBER_STATE -> ElixirLexicalVocabulary.MEMBER_ACCESS
                     charAt(tokenEnd) == ':' && charAt(tokenEnd + 1) != ':' -> {
                         tokenEnd++
-                        ElixirTokenTypes.ATOM
+                        ElixirLexicalVocabulary.ATOM
                     }
                     text in FUNCTION_DEFINITION_KEYWORDS -> {
                         nextState = EXPECT_FUNCTION_NAME_STATE
-                        ElixirTokenTypes.KEYWORD
+                        ElixirLexicalVocabulary.KEYWORD
                     }
-                    text in KEYWORDS -> ElixirTokenTypes.KEYWORD
-                    text in WORD_OPERATORS -> ElixirTokenTypes.OPERATOR
-                    text in ATOM_LITERALS -> ElixirTokenTypes.LITERAL
-                    first.isUpperCase() -> ElixirTokenTypes.ALIAS
-                    else -> ElixirTokenTypes.IDENTIFIER
+                    text in KEYWORDS -> ElixirLexicalVocabulary.KEYWORD
+                    text in WORD_OPERATORS -> ElixirLexicalVocabulary.OPERATOR
+                    text in ATOM_LITERALS -> ElixirLexicalVocabulary.LITERAL
+                    first.isUpperCase() -> ElixirLexicalVocabulary.ALIAS
+                    else -> ElixirLexicalVocabulary.IDENTIFIER
                 }
             }
-            first == '(' || first == ')' -> ElixirTokenTypes.PARENTHESES
-            first == '[' || first == ']' -> ElixirTokenTypes.BRACKETS
+            first == '(' || first == ')' -> ElixirLexicalVocabulary.PARENTHESES
+            first == '[' || first == ']' -> ElixirLexicalVocabulary.BRACKETS
             first == '{' || first == '}' -> {
                 if (first == '{' && tokenState.isInterpolationState()) nextState = tokenState + 1
-                ElixirTokenTypes.BRACES
+                ElixirLexicalVocabulary.BRACES
             }
-            first == ',' || first == ';' || first == '%' -> ElixirTokenTypes.PUNCTUATION
+            first == ',' || first == ';' || first == '%' -> ElixirLexicalVocabulary.PUNCTUATION
             scanOperator() -> {
                 if (buffer.subSequence(tokenStart, tokenEnd).toString() == ".") nextState = EXPECT_MEMBER_STATE
-                ElixirTokenTypes.OPERATOR
+                ElixirLexicalVocabulary.OPERATOR
             }
             else -> TokenType.BAD_CHARACTER
         }
@@ -193,16 +193,16 @@ class ElixirLexer : LexerBase() {
         if (buffer[tokenStart] == '\\') {
             tokenEnd = (tokenStart + 2).coerceAtMost(bufferEnd)
             nextState = DOUBLE_STRING_STATE
-            return ElixirTokenTypes.ESCAPE
+            return ElixirLexicalVocabulary.ESCAPE
         }
         if (buffer[tokenStart] == '#' && charAt(tokenStart + 1) == '{') {
             tokenEnd = tokenStart + 2
             nextState = INTERPOLATION_STATE
-            return ElixirTokenTypes.INTERPOLATION
+            return ElixirLexicalVocabulary.INTERPOLATION
         }
         tokenEnd = tokenStart
         scanStringContent()
-        return ElixirTokenTypes.STRING
+        return ElixirLexicalVocabulary.STRING
     }
 
     private fun scanStringContent() {

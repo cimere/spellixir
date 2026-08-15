@@ -23,13 +23,12 @@ class ElixirParserDefinition : ParserDefinition {
 
     override fun getWhitespaceTokens(): TokenSet = TokenSet.create(TokenType.WHITE_SPACE)
 
-    override fun getCommentTokens(): TokenSet = TokenSet.create(ElixirTokenTypes.COMMENT)
+    override fun getCommentTokens(): TokenSet = TokenSet.create(
+        *ElixirLexicalVocabulary.tokenTypesIn(ElixirLexicalVocabulary.ParserGroup.COMMENT),
+    )
 
     override fun getStringLiteralElements(): TokenSet = TokenSet.create(
-        ElixirTokenTypes.ATOM,
-        ElixirTokenTypes.LITERAL,
-        ElixirTokenTypes.STRING,
-        ElixirTokenTypes.CHARACTER,
+        *ElixirLexicalVocabulary.tokenTypesIn(ElixirLexicalVocabulary.ParserGroup.STRING_LITERAL),
     )
 
     override fun createElement(node: ASTNode): PsiElement = ASTWrapperPsiElement(node)
