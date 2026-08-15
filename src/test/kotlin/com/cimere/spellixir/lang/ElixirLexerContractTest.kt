@@ -176,6 +176,66 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
         )
     }
 
+    fun testTokenizesQuotedAndMultilineFormsWithEscapesAndInterpolation() {
+        val source = "\"double\\n#{name}\" 'charlist\\t#{value}' \"\"\"\nhello #{user}\n\"\"\" '''\nworld #{item}\n'''"
+
+        assertEquals(
+            listOf(
+                "\"double" to "STRING", "\\n" to "ESCAPE", "#{" to "INTERPOLATION",
+                "name" to "IDENTIFIER", "}" to "INTERPOLATION", "\"" to "STRING",
+                " " to "WHITE_SPACE",
+                "'charlist" to "STRING", "\\t" to "ESCAPE", "#{" to "INTERPOLATION",
+                "value" to "IDENTIFIER", "}" to "INTERPOLATION", "'" to "STRING",
+                " " to "WHITE_SPACE",
+                "\"\"\"\nhello " to "STRING", "#{" to "INTERPOLATION", "user" to "IDENTIFIER",
+                "}" to "INTERPOLATION", "\n\"\"\"" to "STRING",
+                " " to "WHITE_SPACE",
+                "'''\nworld " to "STRING", "#{" to "INTERPOLATION", "item" to "IDENTIFIER",
+                "}" to "INTERPOLATION", "\n'''" to "STRING",
+            ),
+            lex(source).map { it.text to it.type.toString() },
+        )
+    }
+
+    fun testTokenizesInterpolatingAndLiteralSigilsWithModifiers() {
+        val source = "~s(foo\\) #{name})u ~S|literal #{name}\\|| ~j<{#{value}}>u8"
+
+        assertEquals(
+            listOf(
+                "~s(foo" to "SIGIL", "\\)" to "ESCAPE", " " to "SIGIL",
+                "#{" to "INTERPOLATION", "name" to "IDENTIFIER", "}" to "INTERPOLATION",
+                ")u" to "SIGIL", " " to "WHITE_SPACE",
+                "~S|literal #{name}\\||" to "SIGIL", " " to "WHITE_SPACE",
+                "~j<{" to "SIGIL", "#{" to "INTERPOLATION", "value" to "IDENTIFIER",
+                "}" to "INTERPOLATION", "}>u8" to "SIGIL",
+            ),
+            lex(source).map { it.text to it.type.toString() },
+        )
+    }
+
+    fun testUnfinishedQuotedFormsRemainContiguousAndRestartable() {
+        val sources = listOf(
+            "\"unfinished\\n#{value",
+            "'''\nunfinished #{%{value: item}}",
+            "~r/foo #{call(%{value: item})}",
+            "~S|literal #{not_interpolation}",
+        )
+
+        for (source in sources) {
+            val complete = lex(source)
+            assertEquals(source, complete.joinToString("") { it.text })
+            assertTrue(complete.all { it.end > it.start })
+            for (tokenIndex in complete.indices) {
+                val token = complete[tokenIndex]
+                assertEquals(
+                    "restart '$source' at offset ${token.start}",
+                    complete.drop(tokenIndex),
+                    lex(source, token.start, token.state),
+                )
+            }
+        }
+    }
+
     private fun lex(source: String, startOffset: Int = 0, initialState: Int = 0): List<Token> {
         val lexer = SyntaxHighlighterFactory
             .getSyntaxHighlighter(ElixirLanguage, project, null)

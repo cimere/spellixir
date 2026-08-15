@@ -256,6 +256,23 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
         )
     }
 
+    fun testHighlightsInterpolationInsideCharlistHeredocAndLowercaseSigil() {
+        val source = "'hi #{name}' \"\"\"\nvalue=#{value}\n\"\"\" ~r/foo #{bar}/iu ~S|#{literal}|"
+
+        assertEquals(
+            listOf(
+                "'hi " to "ELIXIR_STRING", "#{" to "ELIXIR_INTERPOLATION",
+                "name" to "ELIXIR_IDENTIFIER", "}" to "ELIXIR_INTERPOLATION", "'" to "ELIXIR_STRING",
+                "\"\"\"\nvalue=" to "ELIXIR_STRING", "#{" to "ELIXIR_INTERPOLATION",
+                "value" to "ELIXIR_IDENTIFIER", "}" to "ELIXIR_INTERPOLATION", "\n\"\"\"" to "ELIXIR_STRING",
+                "~r/foo " to "ELIXIR_SIGIL", "#{" to "ELIXIR_INTERPOLATION",
+                "bar" to "ELIXIR_IDENTIFIER", "}" to "ELIXIR_INTERPOLATION", "/iu" to "ELIXIR_SIGIL",
+                "~S|#{literal}|" to "ELIXIR_SIGIL",
+            ),
+            highlight(source),
+        )
+    }
+
     private fun highlight(source: String): List<Pair<String, String>> {
         val highlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(ElixirLanguage, project, null)
         val lexer = highlighter.highlightingLexer
