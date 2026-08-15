@@ -37,7 +37,7 @@ class ElixirLexer : LexerBase() {
 
     private fun locateToken() {
         tokenState = lexicalState
-        nextState = if (tokenState.isInterpolationState()) tokenState else DEFAULT_STATE
+        nextState = if (tokenState.keepsContext()) tokenState else DEFAULT_STATE
         if (tokenStart >= bufferEnd) {
             tokenEnd = tokenStart
             tokenType = null
@@ -46,16 +46,20 @@ class ElixirLexer : LexerBase() {
 
         tokenEnd = tokenStart + 1
         val first = buffer[tokenStart]
-        if (tokenState == DOUBLE_STRING_STATE) {
-            tokenType = locateStringContinuation()
+        if (tokenState.isQuotedState()) {
+            tokenType = locateQuotedContinuation(tokenState)
+            return
+        }
+        if (tokenState.isSigilState()) {
+            tokenType = locateSigilContinuation(tokenState)
             return
         }
         if (tokenState.isInterpolationState() && first == '}') {
-            if (tokenState == INTERPOLATION_STATE) {
-                nextState = DOUBLE_STRING_STATE
+            if (tokenState.interpolationDepth() == 1) {
+                nextState = tokenState.interpolationReturnState()
                 tokenType = ElixirLexicalVocabulary.INTERPOLATION
             } else {
-                nextState = tokenState - 1
+                nextState = tokenState.withInterpolationDepth(tokenState.interpolationDepth() - 1)
                 tokenType = ElixirLexicalVocabulary.BRACES
             }
             return
@@ -80,7 +84,11 @@ class ElixirLexer : LexerBase() {
                 ElixirLexicalVocabulary.ATOM
             }
             first in listOf('\'', '"') -> {
-                if (startsHeredoc(first)) scanHeredoc(first) else scanStringStart(first)
+                if (tokenState.isInterpolationState()) {
+                    if (startsHeredoc(first)) scanHeredocWhole(first) else scanQuoted(tokenStart)
+                } else {
+                    scanQuotedStart(first)
+                }
                 ElixirLexicalVocabulary.STRING
             }
             first == '?' && tokenStart + 1 < bufferEnd -> {
@@ -91,7 +99,7 @@ class ElixirLexer : LexerBase() {
                 scanWhile { it.isDigit() }
                 ElixirLexicalVocabulary.CAPTURE
             }
-            first == '~' && scanSigil() -> ElixirLexicalVocabulary.SIGIL
+            first == '~' && scanSigilStart() -> ElixirLexicalVocabulary.SIGIL
             first.isDigit() -> {
                 if (scanNumber()) ElixirLexicalVocabulary.NUMBER else TokenType.BAD_CHARACTER
             }
@@ -106,7 +114,7 @@ class ElixirLexer : LexerBase() {
                         ElixirLexicalVocabulary.ATOM
                     }
                     text in FUNCTION_DEFINITION_KEYWORDS -> {
-                        nextState = EXPECT_FUNCTION_NAME_STATE
+                        if (!tokenState.isInterpolationState()) nextState = EXPECT_FUNCTION_NAME_STATE
                         ElixirLexicalVocabulary.KEYWORD
                     }
                     text in KEYWORDS -> ElixirLexicalVocabulary.KEYWORD
@@ -119,12 +127,16 @@ class ElixirLexer : LexerBase() {
             first == '(' || first == ')' -> ElixirLexicalVocabulary.PARENTHESES
             first == '[' || first == ']' -> ElixirLexicalVocabulary.BRACKETS
             first == '{' || first == '}' -> {
-                if (first == '{' && tokenState.isInterpolationState()) nextState = tokenState + 1
+                if (first == '{' && tokenState.isInterpolationState()) {
+                    nextState = tokenState.withInterpolationDepth(tokenState.interpolationDepth() + 1)
+                }
                 ElixirLexicalVocabulary.BRACES
             }
             first == ',' || first == ';' || first == '%' -> ElixirLexicalVocabulary.PUNCTUATION
             scanOperator() -> {
-                if (buffer.subSequence(tokenStart, tokenEnd).toString() == ".") nextState = EXPECT_MEMBER_STATE
+                if (buffer.subSequence(tokenStart, tokenEnd).toString() == "." && !tokenState.isInterpolationState()) {
+                    nextState = EXPECT_MEMBER_STATE
+                }
                 ElixirLexicalVocabulary.OPERATOR
             }
             else -> TokenType.BAD_CHARACTER
@@ -169,7 +181,7 @@ class ElixirLexer : LexerBase() {
     private fun startsHeredoc(quote: Char): Boolean =
         charAt(tokenStart + 1) == quote && charAt(tokenStart + 2) == quote
 
-    private fun scanHeredoc(quote: Char) {
+    private fun scanHeredocWhole(quote: Char) {
         tokenEnd = tokenStart + 3
         while (tokenEnd < bufferEnd) {
             if (charAt(tokenEnd) == quote && charAt(tokenEnd + 1) == quote && charAt(tokenEnd + 2) == quote) {
@@ -180,39 +192,51 @@ class ElixirLexer : LexerBase() {
         }
     }
 
-    private fun scanStringStart(quote: Char) {
-        tokenEnd = tokenStart + 1
-        if (quote != '"') {
-            scanQuoted(tokenStart)
-            return
+    private fun scanQuotedStart(quote: Char) {
+        val state = when {
+            quote == '"' && startsHeredoc(quote) -> DOUBLE_HEREDOC_STATE
+            quote == '\'' && startsHeredoc(quote) -> SINGLE_HEREDOC_STATE
+            quote == '"' -> DOUBLE_STRING_STATE
+            else -> SINGLE_STRING_STATE
         }
-        scanStringContent()
+        tokenEnd = tokenStart + if (state.isHeredocState()) 3 else 1
+        scanQuotedContent(state)
     }
 
-    private fun locateStringContinuation(): IElementType {
+    private fun locateQuotedContinuation(state: Int): IElementType {
         if (buffer[tokenStart] == '\\') {
             tokenEnd = (tokenStart + 2).coerceAtMost(bufferEnd)
-            nextState = DOUBLE_STRING_STATE
+            nextState = state
             return ElixirLexicalVocabulary.ESCAPE
         }
         if (buffer[tokenStart] == '#' && charAt(tokenStart + 1) == '{') {
             tokenEnd = tokenStart + 2
-            nextState = INTERPOLATION_STATE
+            nextState = interpolationState(state)
             return ElixirLexicalVocabulary.INTERPOLATION
         }
         tokenEnd = tokenStart
-        scanStringContent()
+        scanQuotedContent(state)
         return ElixirLexicalVocabulary.STRING
     }
 
-    private fun scanStringContent() {
+    private fun scanQuotedContent(state: Int) {
+        val quote = if (state == DOUBLE_STRING_STATE || state == DOUBLE_HEREDOC_STATE) '"' else '\''
+        val closingLength = if (state.isHeredocState()) 3 else 1
         while (tokenEnd < bufferEnd) {
             if (buffer[tokenEnd] == '\\' || (buffer[tokenEnd] == '#' && charAt(tokenEnd + 1) == '{')) {
-                nextState = DOUBLE_STRING_STATE
+                nextState = state
                 return
             }
-            if (buffer[tokenEnd++] == '"') return
+            if (buffer[tokenEnd] == quote &&
+                (closingLength == 1 || (charAt(tokenEnd + 1) == quote && charAt(tokenEnd + 2) == quote))
+            ) {
+                tokenEnd += closingLength
+                nextState = DEFAULT_STATE
+                return
+            }
+            tokenEnd++
         }
+        nextState = state
     }
 
     private fun scanCharacter() {
@@ -228,15 +252,26 @@ class ElixirLexer : LexerBase() {
         }
     }
 
-    private fun scanSigil(): Boolean {
+    private fun scanSigilStart(): Boolean {
         if (!charAt(tokenStart + 1).isLetter()) return false
         var delimiterOffset = tokenStart + 2
-        if (charAt(tokenStart + 1).isUpperCase()) {
+        val interpolating = charAt(tokenStart + 1).isLowerCase()
+        if (!interpolating) {
             while (charAt(delimiterOffset).isUpperCase()) delimiterOffset++
         }
         val opening = charAt(delimiterOffset)
-        val closing = SIGIL_DELIMITERS[opening] ?: return false
+        if (opening !in SIGIL_OPENINGS) return false
         tokenEnd = delimiterOffset + 1
+        if (!interpolating) {
+            scanLiteralSigil(opening)
+            return true
+        }
+        scanSigilContent(sigilState(opening, 1))
+        return true
+    }
+
+    private fun scanLiteralSigil(opening: Char) {
+        val closing = SIGIL_DELIMITERS.getValue(opening)
         var depth = 1
         var escaped = false
         while (tokenEnd < bufferEnd) {
@@ -244,12 +279,48 @@ class ElixirLexer : LexerBase() {
             if (!escaped && opening != closing && current == opening) depth++
             if (!escaped && current == closing && --depth == 0) {
                 scanWhile { it.isLetterOrDigit() }
-                return true
+                return
             }
             escaped = current == '\\' && !escaped
             if (current != '\\') escaped = false
         }
-        return true
+    }
+
+    private fun locateSigilContinuation(state: Int): IElementType {
+        if (buffer[tokenStart] == '\\') {
+            tokenEnd = (tokenStart + 2).coerceAtMost(bufferEnd)
+            nextState = state
+            return ElixirLexicalVocabulary.ESCAPE
+        }
+        if (buffer[tokenStart] == '#' && charAt(tokenStart + 1) == '{') {
+            tokenEnd = tokenStart + 2
+            nextState = interpolationState(state)
+            return ElixirLexicalVocabulary.INTERPOLATION
+        }
+        tokenEnd = tokenStart
+        scanSigilContent(state)
+        return ElixirLexicalVocabulary.SIGIL
+    }
+
+    private fun scanSigilContent(state: Int) {
+        val opening = state.sigilOpening()
+        val closing = SIGIL_DELIMITERS.getValue(opening)
+        var depth = state.sigilDepth()
+        while (tokenEnd < bufferEnd) {
+            val current = buffer[tokenEnd]
+            if (current == '\\' || (current == '#' && charAt(tokenEnd + 1) == '{')) {
+                nextState = sigilState(opening, depth)
+                return
+            }
+            tokenEnd++
+            if (opening != closing && current == opening) depth++
+            if (current == closing && --depth == 0) {
+                scanWhile { it.isLetterOrDigit() }
+                nextState = DEFAULT_STATE
+                return
+            }
+        }
+        nextState = sigilState(opening, depth)
     }
 
     private fun scanNumber(): Boolean {
@@ -299,14 +370,50 @@ class ElixirLexer : LexerBase() {
     private fun Char.isAtomStart(): Boolean = isIdentifierStart() || isOperatorCharacter()
     private fun Char.isIdentifierPart(): Boolean = this == '_' || isLetterOrDigit()
     private fun Char.isOperatorCharacter(): Boolean = this in "+-*/\\|<>=~&^!.:"
-    private fun Int.isInterpolationState(): Boolean = this >= INTERPOLATION_STATE
+    private fun Int.keepsContext(): Boolean = isQuotedState() || isSigilState() || isInterpolationState()
+    private fun Int.kind(): Int = this and STATE_KIND_MASK
+    private fun Int.isQuotedState(): Boolean = !isInterpolationState() && kind() in DOUBLE_STRING_STATE..SINGLE_HEREDOC_STATE
+    private fun Int.isHeredocState(): Boolean = kind() == DOUBLE_HEREDOC_STATE || kind() == SINGLE_HEREDOC_STATE
+    private fun Int.isSigilState(): Boolean = !isInterpolationState() && kind() == SIGIL_STATE
+    private fun Int.isInterpolationState(): Boolean = this and INTERPOLATION_FLAG != 0
+    private fun Int.interpolationReturnState(): Int = this and INTERPOLATION_RETURN_MASK
+    private fun Int.interpolationDepth(): Int = (this ushr INTERPOLATION_DEPTH_SHIFT) and BYTE_MASK
+    private fun Int.withInterpolationDepth(depth: Int): Int =
+        (this and INTERPOLATION_DEPTH_MASK.inv()) or
+            (depth.coerceAtMost(BYTE_MASK) shl INTERPOLATION_DEPTH_SHIFT)
+
+    private fun interpolationState(returnState: Int): Int =
+        INTERPOLATION_FLAG or (1 shl INTERPOLATION_DEPTH_SHIFT) or returnState
+
+    private fun sigilState(opening: Char, depth: Int): Int =
+        SIGIL_STATE or
+            (SIGIL_OPENINGS.indexOf(opening) shl SIGIL_OPENING_SHIFT) or
+            (depth.coerceAtMost(BYTE_MASK) shl SIGIL_DEPTH_SHIFT)
+
+    private fun Int.sigilOpening(): Char =
+        SIGIL_OPENINGS[(this ushr SIGIL_OPENING_SHIFT) and NIBBLE_MASK]
+
+    private fun Int.sigilDepth(): Int = (this ushr SIGIL_DEPTH_SHIFT) and BYTE_MASK
 
     companion object {
         private const val DEFAULT_STATE = 0
         private const val EXPECT_FUNCTION_NAME_STATE = 1
         private const val EXPECT_MEMBER_STATE = 2
         private const val DOUBLE_STRING_STATE = 3
-        private const val INTERPOLATION_STATE = 4
+        private const val SINGLE_STRING_STATE = 4
+        private const val DOUBLE_HEREDOC_STATE = 5
+        private const val SINGLE_HEREDOC_STATE = 6
+        private const val SIGIL_STATE = 7
+
+        private const val STATE_KIND_MASK = 0xF
+        private const val NIBBLE_MASK = 0xF
+        private const val BYTE_MASK = 0xFF
+        private const val SIGIL_OPENING_SHIFT = 4
+        private const val SIGIL_DEPTH_SHIFT = 8
+        private const val INTERPOLATION_DEPTH_SHIFT = 16
+        private const val INTERPOLATION_RETURN_MASK = 0xFFFF
+        private const val INTERPOLATION_DEPTH_MASK = BYTE_MASK shl INTERPOLATION_DEPTH_SHIFT
+        private const val INTERPOLATION_FLAG = 1 shl 24
 
         private val FUNCTION_DEFINITION_KEYWORDS = setOf("def", "defguard", "defmacro", "defp")
         private val KEYWORDS = setOf(
@@ -328,5 +435,6 @@ class ElixirLexer : LexerBase() {
         private val SIGIL_DELIMITERS = mapOf(
             '/' to '/', '|' to '|', '"' to '"', '\'' to '\'', '(' to ')', '[' to ']', '{' to '}', '<' to '>',
         )
+        private val SIGIL_OPENINGS = SIGIL_DELIMITERS.keys.toList()
     }
 }
