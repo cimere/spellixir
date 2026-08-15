@@ -1,8 +1,28 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "2.3.21"
     id("org.jetbrains.intellij.platform") version "2.18.1"
+    id("org.jetbrains.intellij.platform.grammarkit") version "2.18.1"
+}
+
+val generatedGrammarRoot = layout.buildDirectory.dir("generated-src/grammar")
+
+tasks.generateParser {
+    sourceFile.set(file("src/main/grammar/Elixir.bnf"))
+    targetRootOutputDir.set(generatedGrammarRoot)
+    pathToParser.set("com/cimere/spellixir/lang/parser/ElixirParser.java")
+    pathToPsiRoot.set("com/cimere/spellixir/lang/psi")
+    purgeOldFiles.set(true)
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    dependsOn(tasks.generateParser)
+}
+
+sourceSets.main {
+    java.srcDir(generatedGrammarRoot)
 }
 
 group = "com.cimere.spellixir"
