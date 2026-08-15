@@ -294,6 +294,42 @@ class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
         )
     }
 
+    fun testIncrementalTypingAfterUnfinishedInterpolationHighlightsFollowingDeclaration() {
+        myFixture.configureByText("incremental_interpolation.ex", "def message(value), do: \"hello #{value")
+        myFixture.editor.caretModel.moveToOffset(myFixture.editor.document.textLength)
+
+        myFixture.type("\ndef run(value), do: :ok")
+        myFixture.doHighlighting()
+
+        val source = myFixture.editor.document.text
+        assertEquals(
+            listOf(
+                "def" to "KEYWORD",
+                "message" to "FUNCTION_DECLARATION",
+                "def" to "KEYWORD",
+                "run" to "FUNCTION_DECLARATION",
+            ),
+            editorTokens(source).filter { it.first == "def" || it.first == "message" || it.first == "run" },
+        )
+    }
+
+    fun testIncrementalTypingAfterUnfinishedStringHighlightsFollowingDeclaration() {
+        myFixture.configureByText("incremental_string.ex", "message = \"unfinished")
+        myFixture.editor.caretModel.moveToOffset(myFixture.editor.document.textLength)
+
+        myFixture.type("\ndef complete(value), do: :ok")
+        myFixture.doHighlighting()
+
+        val source = myFixture.editor.document.text
+        assertEquals(
+            listOf(
+                "def" to "KEYWORD",
+                "complete" to "FUNCTION_DECLARATION",
+            ),
+            editorTokens(source).filter { it.first == "def" || it.first == "complete" },
+        )
+    }
+
     private fun highlight(source: String): List<Pair<String, String>> {
         val highlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(ElixirLanguage, project, null)
         val lexer = highlighter.highlightingLexer

@@ -46,6 +46,11 @@ class ElixirLexer : LexerBase() {
 
         tokenEnd = tokenStart + 1
         val first = buffer[tokenStart]
+        if (tokenState.keepsContext() && !tokenState.isHeredocState() && declarationStartsCurrentLine()) {
+            lexicalState = DEFAULT_STATE
+            tokenState = DEFAULT_STATE
+            nextState = DEFAULT_STATE
+        }
         if (tokenState.isQuotedState()) {
             tokenType = locateQuotedContinuation(tokenState)
             return
@@ -251,6 +256,16 @@ class ElixirLexer : LexerBase() {
         val start = offset
         while (charAt(offset).isIdentifierPart()) offset++
         return buffer.subSequence(start, offset).toString() in DECLARATION_KEYWORDS
+    }
+
+    private fun declarationStartsCurrentLine(): Boolean {
+        var lineStart = tokenStart
+        while (lineStart > 0 && (charAt(lineStart - 1) == ' ' || charAt(lineStart - 1) == '\t')) lineStart--
+        if (lineStart > 0 && !charAt(lineStart - 1).isLineBreak()) return false
+        if (!charAt(tokenStart).isIdentifierStart()) return false
+        var offset = tokenStart
+        while (charAt(offset).isIdentifierPart()) offset++
+        return buffer.subSequence(tokenStart, offset).toString() in DECLARATION_KEYWORDS
     }
 
     private fun scanCharacter() {

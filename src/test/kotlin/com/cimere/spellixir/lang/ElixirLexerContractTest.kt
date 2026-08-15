@@ -237,6 +237,35 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
         }
     }
 
+    fun testRestartingInUnfinishedContextRecoversAtFollowingDeclarationLine() {
+        val unfinishedPrefixes = listOf(
+            "\"unfinished\n",
+            "\"hello #{value\n",
+            "~r/unfinished\n",
+        )
+
+        for (prefix in unfinishedPrefixes) {
+            val source = "${prefix}def complete(value), do: :ok"
+            val declarationTokens = lex(source, prefix.length, stateAtEnd(prefix))
+                .filter { it.type.toString() != "WHITE_SPACE" }
+
+            assertEquals(
+                prefix,
+                listOf("def" to "KEYWORD", "complete" to "FUNCTION_DECLARATION"),
+                declarationTokens.take(2).map { it.text to it.type.toString() },
+            )
+        }
+    }
+
+    private fun stateAtEnd(source: String): Int {
+        val lexer = SyntaxHighlighterFactory
+            .getSyntaxHighlighter(ElixirLanguage, project, null)
+            .highlightingLexer
+        lexer.start(source)
+        while (lexer.tokenType != null) lexer.advance()
+        return lexer.state
+    }
+
     private fun lex(source: String, startOffset: Int = 0, initialState: Int = 0): List<Token> {
         val lexer = SyntaxHighlighterFactory
             .getSyntaxHighlighter(ElixirLanguage, project, null)
