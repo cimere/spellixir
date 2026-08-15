@@ -109,7 +109,7 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
         val tokens = lex(source).filter { it.type.toString() != "WHITE_SPACE" }
 
         assertEquals(source.split(" "), tokens.map { it.text })
-        assertTrue(tokens.all { it.type == ElixirTokenTypes.OPERATOR })
+        assertTrue(tokens.all { it.type == ElixirLexicalVocabulary.OPERATOR })
     }
 
     fun testMalformedBasePrefixedNumberIsInvalidWithoutCorruptingFollowingTokens() {
@@ -163,14 +163,14 @@ class ElixirLexerContractTest : BasePlatformTestCase() {
         assertTrue(
             tokens.map { it.type }.containsAll(
                 listOf(
-                    ElixirTokenTypes.MODULE_ATTRIBUTE,
-                    ElixirTokenTypes.ALIAS,
-                    ElixirTokenTypes.MEMBER_ACCESS,
-                    ElixirTokenTypes.FUNCTION_DECLARATION,
-                    ElixirTokenTypes.CAPTURE,
-                    ElixirTokenTypes.INTERPOLATION,
-                    ElixirTokenTypes.ESCAPE,
-                    ElixirTokenTypes.SIGIL,
+                    ElixirLexicalVocabulary.MODULE_ATTRIBUTE,
+                    ElixirLexicalVocabulary.ALIAS,
+                    ElixirLexicalVocabulary.MEMBER_ACCESS,
+                    ElixirLexicalVocabulary.FUNCTION_DECLARATION,
+                    ElixirLexicalVocabulary.CAPTURE,
+                    ElixirLexicalVocabulary.INTERPOLATION,
+                    ElixirLexicalVocabulary.ESCAPE,
+                    ElixirLexicalVocabulary.SIGIL,
                 ),
             ),
         )

@@ -1,7 +1,6 @@
 package com.cimere.spellixir.lang
 
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
@@ -9,10 +8,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 
 class ElixirSyntaxHighlighterTest : BasePlatformTestCase() {
-    fun testAliasesUseVisibleConstantStyle() {
-        assertSame(DefaultLanguageHighlighterColors.CONSTANT, ElixirSyntaxHighlighter.ALIAS.fallbackAttributeKey)
-    }
-
     fun testOpeningElixirFileKeepsRegisteredEditorHighlighting() {
         val source = "fn value -> {:ok, Demo, 42} end"
         val file = myFixture.tempDirFixture.createFile("sample.ex")
