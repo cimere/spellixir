@@ -2,9 +2,7 @@ package com.cimere.spellixir.lang
 
 import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition
-import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiParser
-import com.intellij.extapi.psi.ASTWrapperPsiElement
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
@@ -12,12 +10,15 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IFileElementType
+import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
+import com.cimere.spellixir.lang.parser.ElixirParser
+import com.cimere.spellixir.lang.psi.ElixirTypes
 
 class ElixirParserDefinition : ParserDefinition {
-    override fun createLexer(project: Project?): Lexer = ElixirLexer()
+    override fun createLexer(project: Project?): Lexer = ElixirParserLexer()
 
-    override fun createParser(project: Project?): PsiParser = ElixirTokenPreservingParser
+    override fun createParser(project: Project?): PsiParser = ElixirParser()
 
     override fun getFileNodeType(): IFileElementType = FILE
 
@@ -28,23 +29,22 @@ class ElixirParserDefinition : ParserDefinition {
     )
 
     override fun getStringLiteralElements(): TokenSet = TokenSet.create(
-        *ElixirLexicalVocabulary.tokenTypesIn(ElixirLexicalVocabulary.ParserGroup.STRING_LITERAL),
+        ElixirTypes.ATOM,
+        ElixirTypes.LITERAL,
+        ElixirTypes.STRING,
+        ElixirTypes.CHARACTER,
     )
 
-    override fun createElement(node: ASTNode): PsiElement = ASTWrapperPsiElement(node)
+    override fun createElement(node: ASTNode): PsiElement = ElixirTypes.Factory.createElement(node)
 
     override fun createFile(viewProvider: FileViewProvider): PsiFile = ElixirFile(viewProvider)
 
     companion object {
         val FILE = IFileElementType(ElixirLanguage)
+
+        @JvmStatic
+        fun createElementType(debugName: String): IElementType = ElixirElementType(debugName)
     }
 }
 
-private object ElixirTokenPreservingParser : PsiParser {
-    override fun parse(root: com.intellij.psi.tree.IElementType, builder: PsiBuilder): ASTNode {
-        val file = builder.mark()
-        while (!builder.eof()) builder.advanceLexer()
-        file.done(root)
-        return builder.treeBuilt
-    }
-}
+class ElixirElementType(debugName: String) : IElementType(debugName, ElixirLanguage)
