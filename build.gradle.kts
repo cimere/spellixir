@@ -25,6 +25,12 @@ sourceSets.main {
     java.srcDir(generatedGrammarRoot)
 }
 
+tasks.test {
+    // Native Core fixtures need only Spellixir and its platform dependencies. Loading every
+    // bundled IDE plugin also starts unrelated services (including Vue's language server).
+    systemProperty("idea.load.plugins.id", "com.cimere.spellixir")
+}
+
 group = "com.cimere.spellixir"
 version = "0.1.7"
 
