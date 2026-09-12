@@ -13,7 +13,7 @@ class MixProjectServiceTest : BasePlatformTestCase() {
     private val service get() = project.getService(MixProjectService::class.java)
 
     fun testRegisteredServiceClassifiesOrdinaryProjectWithoutEvaluatingMixFile() {
-        val mix = myFixture.addFileToProject("app/mix.exs", "raise \"must never execute\"").virtualFile
+        val mix = myFixture.addFileToProject("app/mix.exs", mixDefinition("app: :demo")).virtualFile
         val source = myFixture.addFileToProject("app/lib/demo.ex", "defmodule Demo do\nend").virtualFile
         val expected = MixProjectContext.MixProject(mix.parent)
 
@@ -21,7 +21,7 @@ class MixProjectServiceTest : BasePlatformTestCase() {
         assertEquals(expected, service.classify(source))
         assertEquals(expected, service.classify(mix))
         assertEquals(expected, service.classify(mix.parent))
-        assertEquals("raise \"must never execute\"", String(mix.contentsToByteArray()))
+        assertEquals(mixDefinition("app: :demo"), String(mix.contentsToByteArray()))
     }
 
     fun testStandaloneElixirFilesKeepRegisteredEditingSupport() {
@@ -37,8 +37,8 @@ class MixProjectServiceTest : BasePlatformTestCase() {
     }
 
     fun testNestedProjectUsesItsOwnRoot() {
-        myFixture.addFileToProject("app/mix.exs", "")
-        val nestedMix = myFixture.addFileToProject("app/nested/mix.exs", "").virtualFile
+        myFixture.addFileToProject("app/mix.exs", mixDefinition("app: :demo"))
+        val nestedMix = myFixture.addFileToProject("app/nested/mix.exs", mixDefinition("app: :nested")).virtualFile
         val source = myFixture.addFileToProject("app/nested/lib/demo.ex", "").virtualFile
         assertEquals(MixProjectContext.MixProject(nestedMix.parent), service.classify(source))
     }
@@ -56,7 +56,7 @@ class MixProjectServiceTest : BasePlatformTestCase() {
     fun testClassificationTracksMarkerCreationRenameAndRemoval() {
         val source = myFixture.addFileToProject("app/lib/demo.ex", "").virtualFile
         assertEquals(MixProjectContext.Standalone, service.classify(source))
-        val mix = myFixture.addFileToProject("app/mix.exs", "").virtualFile
+        val mix = myFixture.addFileToProject("app/mix.exs", mixDefinition("app: :demo")).virtualFile
         val expected = MixProjectContext.MixProject(mix.parent)
         assertEquals(expected, service.classify(source))
         WriteCommandAction.runWriteCommandAction(project) { mix.rename(this, "mix.exs.bak") }
