@@ -13,6 +13,7 @@ class MixProjectLocatorTest {
             child = { directory, name ->
                 "$directory/$name".takeIf { it in this.files || it in directories }
             },
+            metadata = { MixMetadata.Ordinary },
         )
     }
 
