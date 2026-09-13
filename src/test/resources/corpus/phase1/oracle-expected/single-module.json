@@ -1,0 +1,22 @@
+{
+  "hasError": false,
+  "nodes": [
+    [0,50,"source",false],
+    [0,49,"call",false],
+    [0,9,"identifier",false],
+    [10,14,"arguments",false],
+    [10,14,"alias",false],
+    [15,49,"do_block",false],
+    [20,45,"call",false],
+    [20,23,"identifier",false],
+    [24,45,"arguments",false],
+    [24,34,"call",false],
+    [24,27,"identifier",false],
+    [27,34,"arguments",false],
+    [28,33,"identifier",false],
+    [36,45,"keywords",false],
+    [36,45,"pair",false],
+    [36,40,"keyword",false],
+    [40,45,"identifier",false]
+  ]
+}

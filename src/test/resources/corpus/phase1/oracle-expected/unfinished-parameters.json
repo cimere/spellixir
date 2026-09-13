@@ -1,0 +1,27 @@
+{
+  "hasError": true,
+  "nodes": [
+    [0,60,"source",false],
+    [0,60,"call",false],
+    [0,3,"identifier",false],
+    [4,60,"arguments",false],
+    [4,60,"call",false],
+    [4,14,"identifier",false],
+    [14,60,"arguments",false],
+    [15,20,"identifier",false],
+    [22,59,"call",false],
+    [22,25,"identifier",false],
+    [26,59,"arguments",false],
+    [26,41,"call",false],
+    [26,34,"identifier",false],
+    [34,41,"arguments",false],
+    [35,40,"identifier",false],
+    [43,59,"keywords",false],
+    [43,59,"pair",false],
+    [43,47,"keyword",false],
+    [47,59,"tuple",false],
+    [48,51,"atom",false],
+    [53,58,"identifier",false],
+    [60,60,")",true]
+  ]
+}

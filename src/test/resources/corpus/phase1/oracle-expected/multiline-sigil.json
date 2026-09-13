@@ -1,0 +1,11 @@
+{
+  "hasError": false,
+  "nodes": [
+    [0,26,"source",false],
+    [0,25,"binary_operator",false],
+    [0,5,"identifier",false],
+    [8,25,"sigil",false],
+    [9,10,"sigil_name",false],
+    [11,24,"quoted_content",false]
+  ]
+}

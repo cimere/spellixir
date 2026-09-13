@@ -337,6 +337,14 @@ class ElixirLexer : LexerBase() {
         var depth = state.sigilDepth()
         while (tokenEnd < bufferEnd) {
             val current = buffer[tokenEnd]
+            if (current.isLineBreak() && declarationStartsNextLine(tokenEnd) &&
+                !hasClosingSigilDelimiter(tokenEnd, opening, depth)
+            ) {
+                // A continuation immediately after an escape must still emit a nonempty token.
+                if (tokenEnd == tokenStart) tokenEnd++
+                nextState = DEFAULT_STATE
+                return
+            }
             if (current == '\\' || (current == '#' && charAt(tokenEnd + 1) == '{')) {
                 nextState = sigilState(opening, depth)
                 return
@@ -350,6 +358,22 @@ class ElixirLexer : LexerBase() {
             }
         }
         nextState = sigilState(opening, depth)
+    }
+
+    private fun hasClosingSigilDelimiter(start: Int, opening: Char, initialDepth: Int): Boolean {
+        val closing = SIGIL_DELIMITERS.getValue(opening)
+        var depth = initialDepth
+        var offset = start
+        while (offset < bufferEnd) {
+            val current = buffer[offset++]
+            if (current == '\\') {
+                offset++
+                continue
+            }
+            if (opening != closing && current == opening) depth++
+            if (current == closing && --depth == 0) return true
+        }
+        return false
     }
 
     private fun scanNumber(): Boolean {

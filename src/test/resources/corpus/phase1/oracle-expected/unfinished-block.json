@@ -1,0 +1,21 @@
+{
+  "hasError": true,
+  "nodes": [
+    [0,36,"source",false],
+    [0,36,"call",false],
+    [0,3,"identifier",false],
+    [4,14,"arguments",false],
+    [4,14,"call",false],
+    [4,7,"identifier",false],
+    [7,14,"arguments",false],
+    [8,13,"identifier",false],
+    [15,36,"do_block",false],
+    [20,35,"call",false],
+    [20,28,"dot",false],
+    [20,24,"alias",false],
+    [25,28,"identifier",false],
+    [28,35,"arguments",false],
+    [29,34,"identifier",false],
+    [36,36,"end",true]
+  ]
+}

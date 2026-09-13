@@ -29,6 +29,21 @@ tasks.test {
     // Native Core fixtures need only Spellixir and its platform dependencies. Loading every
     // bundled IDE plugin also starts unrelated services (including Vue's language server).
     systemProperty("idea.load.plugins.id", "com.cimere.spellixir")
+    systemProperty("spellixir.corpus.dir", layout.projectDirectory.dir("src/test/resources/corpus/phase1").asFile.absolutePath)
+    systemProperty("spellixir.corpus.report", layout.buildDirectory.dir("reports/syntax-corpus").get().asFile.absolutePath)
+    inputs.dir(layout.projectDirectory.dir("src/test/resources/corpus/phase1"))
+    outputs.dir(layout.buildDirectory.dir("reports/syntax-corpus"))
+}
+
+tasks.register<Exec>("verifySyntaxCorpus") {
+    group = "verification"
+    description = "Compare the Native Core corpus with pinned official Tree-sitter sources (requires Python 3 and a C compiler)."
+    dependsOn(tasks.test)
+    commandLine("python3", "scripts/verify_syntax_corpus.py")
+}
+
+tasks.check {
+    dependsOn("verifySyntaxCorpus")
 }
 
 group = "com.cimere.spellixir"

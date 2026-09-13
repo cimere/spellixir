@@ -1,0 +1,19 @@
+{
+  "hasError": true,
+  "nodes": [
+    [0,77,"source",false],
+    [0,77,"call",false],
+    [0,3,"identifier",false],
+    [4,77,"arguments",false],
+    [4,21,"call",false],
+    [4,14,"identifier",false],
+    [14,21,"arguments",false],
+    [15,20,"identifier",false],
+    [23,77,"keywords",false],
+    [23,77,"pair",false],
+    [23,27,"keyword",false],
+    [27,77,"charlist",false],
+    [28,77,"quoted_content",false],
+    [77,77,"'",true]
+  ]
+}

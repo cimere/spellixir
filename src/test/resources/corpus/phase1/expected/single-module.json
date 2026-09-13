@@ -1,0 +1,41 @@
+{
+  "sourceSha256": "a65bd2e23e2c8da3223a099e99ec2bdc55970170a4ab7b95e5885ab88fda235a",
+  "tokens": [
+    [0,9,"KEYWORD",["ELIXIR_KEYWORD"],"defmodule"],
+    [9,10,"WHITE_SPACE",[]," "],
+    [10,14,"ALIAS",["ELIXIR_ALIAS"],"Demo"],
+    [14,15,"WHITE_SPACE",[]," "],
+    [15,17,"KEYWORD",["ELIXIR_KEYWORD"],"do"],
+    [17,20,"WHITE_SPACE",[],"\n  "],
+    [20,23,"KEYWORD",["ELIXIR_KEYWORD"],"def"],
+    [23,24,"WHITE_SPACE",[]," "],
+    [24,27,"FUNCTION_DECLARATION",["ELIXIR_FUNCTION_DECLARATION"],"run"],
+    [27,28,"PARENTHESES",["ELIXIR_PARENTHESES"],"("],
+    [28,33,"IDENTIFIER",["ELIXIR_IDENTIFIER"],"value"],
+    [33,34,"PARENTHESES",["ELIXIR_PARENTHESES"],")"],
+    [34,35,"PUNCTUATION",["ELIXIR_PUNCTUATION"],","],
+    [35,36,"WHITE_SPACE",[]," "],
+    [36,39,"ATOM",["ELIXIR_ATOM"],"do:"],
+    [39,40,"WHITE_SPACE",[]," "],
+    [40,45,"IDENTIFIER",["ELIXIR_IDENTIFIER"],"value"],
+    [45,46,"WHITE_SPACE",[],"\n"],
+    [46,49,"KEYWORD",["ELIXIR_KEYWORD"],"end"],
+    [49,50,"WHITE_SPACE",[],"\n"]
+  ],
+  "psi": [
+    [0,49,"MODULE_DECLARATION"],
+    [15,49,"DO_BLOCK"],
+    [20,45,"CALLABLE_DECLARATION"],
+    [24,27,"CALLABLE_NAME"],
+    [27,34,"PARAMETER_LIST"],
+    [28,33,"PATTERN"],
+    [28,33,"EXPRESSION"],
+    [28,33,"REFERENCE_NAME"],
+    [34,45,"CALLABLE_BODY"],
+    [40,45,"EXPRESSION"],
+    [40,45,"REFERENCE_NAME"]
+  ],
+  "errors": [
+
+  ]
+}

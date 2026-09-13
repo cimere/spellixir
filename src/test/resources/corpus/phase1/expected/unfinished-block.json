@@ -1,0 +1,42 @@
+{
+  "sourceSha256": "b1d95d6daff0bc38eb35a0bb74c5b0b0dbd6d5dc3f7eb77c4f4ef3c8b35a68d5",
+  "tokens": [
+    [0,3,"KEYWORD",["ELIXIR_KEYWORD"],"def"],
+    [3,4,"WHITE_SPACE",[]," "],
+    [4,7,"FUNCTION_DECLARATION",["ELIXIR_FUNCTION_DECLARATION"],"run"],
+    [7,8,"PARENTHESES",["ELIXIR_PARENTHESES"],"("],
+    [8,13,"IDENTIFIER",["ELIXIR_IDENTIFIER"],"value"],
+    [13,14,"PARENTHESES",["ELIXIR_PARENTHESES"],")"],
+    [14,15,"WHITE_SPACE",[]," "],
+    [15,17,"KEYWORD",["ELIXIR_KEYWORD"],"do"],
+    [17,20,"WHITE_SPACE",[],"\n  "],
+    [20,24,"ALIAS",["ELIXIR_ALIAS"],"Repo"],
+    [24,25,"OPERATOR",["ELIXIR_OPERATOR"],"."],
+    [25,28,"MEMBER_ACCESS",["ELIXIR_MEMBER_ACCESS"],"get"],
+    [28,29,"PARENTHESES",["ELIXIR_PARENTHESES"],"("],
+    [29,34,"IDENTIFIER",["ELIXIR_IDENTIFIER"],"value"],
+    [34,35,"PARENTHESES",["ELIXIR_PARENTHESES"],")"],
+    [35,36,"WHITE_SPACE",[],"\n"]
+  ],
+  "psi": [
+    [0,35,"CALLABLE_DECLARATION"],
+    [4,7,"CALLABLE_NAME"],
+    [7,14,"PARAMETER_LIST"],
+    [8,13,"PATTERN"],
+    [8,13,"EXPRESSION"],
+    [8,13,"REFERENCE_NAME"],
+    [15,35,"CALLABLE_BODY"],
+    [15,35,"DO_BLOCK"],
+    [20,35,"EXPRESSION"],
+    [20,35,"CALL_EXPRESSION"],
+    [20,28,"QUALIFIED_NAME"],
+    [20,24,"REFERENCE_NAME"],
+    [25,28,"REFERENCE_NAME"],
+    [28,35,"ARGUMENT_LIST"],
+    [29,34,"EXPRESSION"],
+    [29,34,"REFERENCE_NAME"]
+  ],
+  "errors": [
+
+  ]
+}

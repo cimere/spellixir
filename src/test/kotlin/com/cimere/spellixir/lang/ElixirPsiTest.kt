@@ -23,6 +23,15 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 
 class ElixirPsiTest : BasePlatformTestCase() {
+    fun testSingleSegmentModuleNamePreservesModuleAndCallablePsi() {
+        val source = "defmodule Demo do\n  def run(value), do: value\nend"
+        val file = myFixture.configureByText("single_module.ex", source)
+        val module = PsiTreeUtil.findChildOfType(file, ElixirModuleDeclaration::class.java)
+
+        assertEquals(source, module?.text)
+        assertEquals(1, PsiTreeUtil.findChildrenOfType(module, ElixirCallableDeclaration::class.java).size)
+    }
+
     fun testRegisteredParserExposesDurableDeclarationPsi() {
         val source = """
             defmodule Demo.Accounts do
