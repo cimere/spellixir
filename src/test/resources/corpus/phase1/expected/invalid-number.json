@@ -1,0 +1,48 @@
+{
+  "sourceSha256": "1eaa9f5527e4530d88456e9c278537d4d5edc91ca75b4ebb5ee29db70bf79d56",
+  "tokens": [
+    [0,3,"IDENTIFIER",["ELIXIR_IDENTIFIER"],"bad"],
+    [3,4,"WHITE_SPACE",[]," "],
+    [4,5,"OPERATOR",["ELIXIR_OPERATOR"],"="],
+    [5,6,"WHITE_SPACE",[]," "],
+    [6,10,"BAD_CHARACTER",["ELIXIR_BAD_CHARACTER"],"0xZZ"],
+    [10,11,"WHITE_SPACE",[],"\n"],
+    [11,14,"KEYWORD",["ELIXIR_KEYWORD"],"def"],
+    [14,15,"WHITE_SPACE",[]," "],
+    [15,23,"FUNCTION_DECLARATION",["ELIXIR_FUNCTION_DECLARATION"],"complete"],
+    [23,24,"PARENTHESES",["ELIXIR_PARENTHESES"],"("],
+    [24,29,"IDENTIFIER",["ELIXIR_IDENTIFIER"],"value"],
+    [29,30,"PARENTHESES",["ELIXIR_PARENTHESES"],")"],
+    [30,31,"PUNCTUATION",["ELIXIR_PUNCTUATION"],","],
+    [31,32,"WHITE_SPACE",[]," "],
+    [32,35,"ATOM",["ELIXIR_ATOM"],"do:"],
+    [35,36,"WHITE_SPACE",[]," "],
+    [36,37,"BRACES",["ELIXIR_BRACES"],"{"],
+    [37,40,"ATOM",["ELIXIR_ATOM"],":ok"],
+    [40,41,"PUNCTUATION",["ELIXIR_PUNCTUATION"],","],
+    [41,42,"WHITE_SPACE",[]," "],
+    [42,47,"IDENTIFIER",["ELIXIR_IDENTIFIER"],"value"],
+    [47,48,"BRACES",["ELIXIR_BRACES"],"}"],
+    [48,49,"WHITE_SPACE",[],"\n"]
+  ],
+  "psi": [
+    [0,3,"EXPRESSION"],
+    [0,3,"REFERENCE_NAME"],
+    [11,48,"CALLABLE_DECLARATION"],
+    [15,23,"CALLABLE_NAME"],
+    [23,30,"PARAMETER_LIST"],
+    [24,29,"PATTERN"],
+    [24,29,"EXPRESSION"],
+    [24,29,"REFERENCE_NAME"],
+    [30,48,"CALLABLE_BODY"],
+    [36,48,"EXPRESSION"],
+    [36,48,"TUPLE_EXPRESSION"],
+    [37,40,"EXPRESSION"],
+    [37,40,"LITERAL_EXPRESSION"],
+    [42,47,"EXPRESSION"],
+    [42,47,"REFERENCE_NAME"]
+  ],
+  "errors": [
+
+  ]
+}

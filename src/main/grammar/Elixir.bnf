@@ -37,7 +37,7 @@ elixir_file ::= form*
 
 private form ::= !end_keyword (module_declaration | callable_declaration | alias_declaration | expression | unexpected_token)
 
-module_declaration ::= defmodule_keyword qualified_name do_block
+module_declaration ::= defmodule_keyword (qualified_name | ALIAS) do_block
 
 alias_declaration ::= alias_keyword qualified_name
 
@@ -84,7 +84,9 @@ list_expression ::= left_bracket [expression (comma expression)* comma?] right_b
 
 tuple_expression ::= left_brace [expression (comma expression)* comma?] right_brace?
 
-map_expression ::= percent left_brace [expression (comma expression)* comma?] right_brace?
+map_expression ::= percent left_brace [map_entry (comma map_entry)* comma?] right_brace?
+
+private map_entry ::= &<<isKeywordKey>> literal_expression expression | expression
 
 parenthesized_expression ::= left_parenthesis expression right_parenthesis?
 

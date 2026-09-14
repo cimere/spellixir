@@ -1,0 +1,22 @@
+{
+  "hasError": true,
+  "nodes": [
+    [0,81,"source",false],
+    [0,81,"call",false],
+    [0,3,"identifier",false],
+    [4,81,"arguments",false],
+    [4,21,"call",false],
+    [4,14,"identifier",false],
+    [14,21,"arguments",false],
+    [15,20,"identifier",false],
+    [23,81,"keywords",false],
+    [23,81,"pair",false],
+    [23,27,"keyword",false],
+    [27,81,"sigil",false],
+    [28,29,"sigil_name",false],
+    [30,40,"quoted_content",false],
+    [40,42,"escape_sequence",false],
+    [42,81,"quoted_content",false],
+    [81,81,"/",true]
+  ]
+}

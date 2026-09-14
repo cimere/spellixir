@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "grammar": {
+    "repository": "elixir-lang/tree-sitter-elixir",
+    "revision": "4b0c7118760af58a2e7081bbc8396e136f820b37",
+    "archiveSha256": "9b25ed2f86fae41d3f39bdd8fd8fa3e5d2f1f6956d545135ea56ea04bf0dd5a2",
+    "licenseFile": "licenses/tree-sitter-elixir-LICENSE",
+    "noticeFile": "licenses/tree-sitter-elixir-NOTICE"
+  },
+  "runtime": {
+    "repository": "tree-sitter/tree-sitter",
+    "revision": "da6fe9beb4f7f67beb75914ca8e0d48ae48d6406",
+    "archiveSha256": "d7ccf512347cac69a151ff174140ae6563ea01c6424b62dd963c977cfa8a0992",
+    "licenseFile": "licenses/tree-sitter-LICENSE"
+  }
+}

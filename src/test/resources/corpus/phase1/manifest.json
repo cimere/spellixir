@@ -1,0 +1,610 @@
+{
+  "schemaVersion": 1,
+  "corpusVersion": 1,
+  "fixtures": [
+    {
+      "id": "single-module",
+      "path": "fixtures/single-module.ex",
+      "status": "valid",
+      "sha256": "a65bd2e23e2c8da3223a099e99ec2bdc55970170a4ab7b95e5885ab88fda235a",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [
+        {
+          "kind": "psi",
+          "type": "MODULE_DECLARATION",
+          "text": "defmodule Demo do\n  def run(value), do: value\nend"
+        }
+      ],
+      "differential": [
+        {
+          "kind": "psi",
+          "type": "MODULE_DECLARATION",
+          "text": "defmodule Demo do\n  def run(value), do: value\nend",
+          "oracleType": "call"
+        },
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def run(value), do: value",
+          "oracleType": "call"
+        }
+      ],
+      "recovery": []
+    },
+    {
+      "id": "structure",
+      "path": "fixtures/structure.ex",
+      "status": "valid",
+      "sha256": "92ed78ffcb80c4f13475aebf73c4019cc490f4b059f6ab82b29dd18248bb1adc",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [
+        {
+          "kind": "psi",
+          "type": "ALIAS_DECLARATION",
+          "text": "alias Demo.Repo",
+          "oracleType": "call"
+        },
+        {
+          "kind": "psi",
+          "type": "CALL_EXPRESSION",
+          "text": "Repo.get(User, user_id)",
+          "oracleType": "call"
+        },
+        {
+          "kind": "psi",
+          "type": "LIST_EXPRESSION",
+          "text": "[user_id]",
+          "oracleType": "list"
+        },
+        {
+          "kind": "psi",
+          "type": "MAP_EXPRESSION",
+          "text": "%{status: :ok}",
+          "oracleType": "map"
+        }
+      ],
+      "recovery": []
+    },
+    {
+      "id": "lexical",
+      "path": "fixtures/lexical.ex",
+      "status": "valid",
+      "sha256": "7ecadb139da72ab2492b00182f30732ae57354e0adc4481c80efa59eb68908d2",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [
+        {
+          "kind": "token",
+          "type": "NUMBER",
+          "text": "0x2A",
+          "oracleType": "integer"
+        },
+        {
+          "kind": "token",
+          "type": "ATOM",
+          "text": ":ok",
+          "oracleType": "atom"
+        },
+        {
+          "kind": "token",
+          "type": "CHARACTER",
+          "text": "?🚀",
+          "oracleType": "char"
+        },
+        {
+          "kind": "token",
+          "type": "LITERAL",
+          "text": "true",
+          "oracleType": "boolean"
+        }
+      ],
+      "recovery": []
+    },
+    {
+      "id": "literals",
+      "path": "fixtures/literals.ex",
+      "status": "valid",
+      "sha256": "4b7ac0d17a1836f450983d8d59fe3a3adf98e0992bfc5805d4b6734addf40898",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [
+        {
+          "kind": "token",
+          "type": "SIGIL",
+          "text": "~S|literal #{name}|",
+          "oracleType": "sigil"
+        }
+      ],
+      "recovery": []
+    },
+    {
+      "id": "operators",
+      "path": "fixtures/operators.ex",
+      "status": "valid",
+      "sha256": "236171e57c45749442eb3e4e0522ad9ea5c1975251467963bb6d779d1d275e53",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [
+        {
+          "kind": "token",
+          "type": "NUMBER",
+          "text": "10",
+          "oracleType": "integer"
+        }
+      ],
+      "recovery": []
+    },
+    {
+      "id": "unfinished-call",
+      "path": "fixtures/unfinished-call.ex",
+      "status": "incomplete",
+      "sha256": "26496148f720f30d00de7cdee270fdace38288f0178b1bc4397dd42543970c02",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        },
+        {
+          "kind": "token",
+          "type": "FUNCTION_DECLARATION",
+          "text": "complete"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-list",
+      "path": "fixtures/unfinished-list.ex",
+      "status": "incomplete",
+      "sha256": "fcb4b9ea4d02c2c5d5cb0de790736a129396ff35f68f7deb4cdffd6057afe84c",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        },
+        {
+          "kind": "token",
+          "type": "FUNCTION_DECLARATION",
+          "text": "complete"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-tuple",
+      "path": "fixtures/unfinished-tuple.ex",
+      "status": "incomplete",
+      "sha256": "02dd00bf6cd5af5b8084ec846506f9b836f3a5ce21cd5df8b504f196dc6b7176",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        },
+        {
+          "kind": "token",
+          "type": "FUNCTION_DECLARATION",
+          "text": "complete"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-map",
+      "path": "fixtures/unfinished-map.ex",
+      "status": "incomplete",
+      "sha256": "df8f17dffc5b2702f513d2a49c7f91104ca2d0f95efe5ce31dd3dbe888669700",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        },
+        {
+          "kind": "token",
+          "type": "FUNCTION_DECLARATION",
+          "text": "complete"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-parenthesis",
+      "path": "fixtures/unfinished-parenthesis.ex",
+      "status": "incomplete",
+      "sha256": "25bb2cfae0177801c814a2098287ea0c9e823f1616e6b0003a460ddaa9753234",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        },
+        {
+          "kind": "token",
+          "type": "FUNCTION_DECLARATION",
+          "text": "complete"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-string",
+      "path": "fixtures/unfinished-string.ex",
+      "status": "incomplete",
+      "sha256": "2783874266d2cd644d4cc4bb9f5377dff111f0a0ff446c251ce4eb394d7c03a5",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        },
+        {
+          "kind": "token",
+          "type": "FUNCTION_DECLARATION",
+          "text": "complete"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-sigil",
+      "path": "fixtures/unfinished-sigil.ex",
+      "status": "incomplete",
+      "sha256": "85998d151415fdc102f7c8cc875a91fc97690e99aa6b09669e9dfd7dfac64230",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        },
+        {
+          "kind": "token",
+          "type": "FUNCTION_DECLARATION",
+          "text": "complete"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-interpolation",
+      "path": "fixtures/unfinished-interpolation.ex",
+      "status": "incomplete",
+      "sha256": "bb98cf6398a2dd03650bb8c9eefdf30f466c7f2a3f9f0b1d40d39d4e7a8b9b6d",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        },
+        {
+          "kind": "token",
+          "type": "FUNCTION_DECLARATION",
+          "text": "complete"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-parameters",
+      "path": "fixtures/unfinished-parameters.ex",
+      "status": "incomplete",
+      "sha256": "31a8f2f31173340ac4b89adf013a921f9e26e64eee9fd560cf1ff6135f4e2f15",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-block",
+      "path": "fixtures/unfinished-block.ex",
+      "status": "incomplete",
+      "sha256": "b1d95d6daff0bc38eb35a0bb74c5b0b0dbd6d5dc3f7eb77c4f4ef3c8b35a68d5",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def run(value) do\n  Repo.get(value)"
+        }
+      ],
+      "differential": [],
+      "recovery": []
+    },
+    {
+      "id": "unfinished-heredoc",
+      "path": "fixtures/unfinished-heredoc.ex",
+      "status": "incomplete",
+      "sha256": "8bfaec8fe197b9e9d12b228032e863f4359f7d566f9b8a93b182f81fb415537d",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        }
+      ]
+    },
+    {
+      "id": "invalid-character",
+      "path": "fixtures/invalid-character.ex",
+      "status": "invalid",
+      "sha256": "400ac3800481cc930352b2db265751493f2c3d5f96395965f6710f1a3535b20e",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [
+        {
+          "kind": "token",
+          "type": "BAD_CHARACTER",
+          "text": "§"
+        }
+      ],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        }
+      ]
+    },
+    {
+      "id": "invalid-number",
+      "path": "fixtures/invalid-number.ex",
+      "status": "invalid",
+      "sha256": "1eaa9f5527e4530d88456e9c278537d4d5edc91ca75b4ebb5ee29db70bf79d56",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [
+        {
+          "kind": "token",
+          "type": "BAD_CHARACTER",
+          "text": "0xZZ"
+        }
+      ],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        }
+      ]
+    },
+    {
+      "id": "upstream-will_recompile",
+      "path": "fixtures/upstream-will_recompile.ex",
+      "status": "valid",
+      "sha256": "1b265ba90baa9e74b03fdd3a41184966f0e292a26c9b36b0387324b31a5d2bf1",
+      "origin": {
+        "kind": "copied",
+        "repository": "https://github.com/elixir-lang/elixir",
+        "revision": "759443e724f55bf58e71c0603644e99058918d52",
+        "path": "lib/mix/lib/mix/tasks/will_recompile.ex",
+        "license": "Apache-2.0",
+        "adaptation": "Unmodified; original SPDX headers retained.",
+        "licenseFile": "licenses/elixir-LICENSE",
+        "notice": "No root NOTICE file in the pinned source archive."
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": []
+    },
+    {
+      "id": "upstream-deps-unlock",
+      "path": "fixtures/upstream-deps-unlock.ex",
+      "status": "valid",
+      "sha256": "ed2b47d8461c379e52dd32f6a4dbc434f82abb56e3c4eaed68c12f17a8139cf6",
+      "origin": {
+        "kind": "copied",
+        "repository": "https://github.com/elixir-lang/elixir",
+        "revision": "759443e724f55bf58e71c0603644e99058918d52",
+        "path": "lib/mix/lib/mix/tasks/deps.unlock.ex",
+        "license": "Apache-2.0",
+        "adaptation": "Unmodified; original SPDX headers retained.",
+        "licenseFile": "licenses/elixir-LICENSE",
+        "notice": "No root NOTICE file in the pinned source archive."
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": []
+    },
+    {
+      "id": "unfinished-charlist",
+      "path": "fixtures/unfinished-charlist.ex",
+      "status": "incomplete",
+      "sha256": "c50187d78e6b381f752c96f871c1a66d0d339b9b0411abb3c6682f4bdf875e2b",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-sigil-escape",
+      "path": "fixtures/unfinished-sigil-escape.ex",
+      "status": "incomplete",
+      "sha256": "96b1b27f02d9cb61a03a2534d37d482fdf40ca83c090ad7865bebddc8780bae3",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-literal-sigil",
+      "path": "fixtures/unfinished-literal-sigil.ex",
+      "status": "incomplete",
+      "sha256": "6f20e100ab42539f14cf4ec5d0088e7f6fee5d62f22c7d018405ec7a34a168f7",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        }
+      ]
+    },
+    {
+      "id": "unfinished-char-heredoc",
+      "path": "fixtures/unfinished-char-heredoc.ex",
+      "status": "incomplete",
+      "sha256": "5053e919944bb7900aa819d71a04be60044b9c847e806a738fec8d962db518f0",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "differential": [],
+      "recovery": [
+        {
+          "kind": "psi",
+          "type": "CALLABLE_DECLARATION",
+          "text": "def complete(value), do: {:ok, value}"
+        }
+      ]
+    },
+    {
+      "id": "multiline-sigil",
+      "path": "fixtures/multiline-sigil.ex",
+      "status": "valid",
+      "sha256": "33959be8bce816990bdfd6554005053c118a951838d56bfad8d7fb0ef7620a62",
+      "origin": {
+        "kind": "original",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/cimere/spellixir"
+      },
+      "assertions": [],
+      "recovery": [],
+      "differential": [
+        {
+          "kind": "token",
+          "type": "SIGIL",
+          "text": "~r/\ndef example\n/",
+          "oracleType": "sigil"
+        }
+      ]
+    }
+  ]
+}
