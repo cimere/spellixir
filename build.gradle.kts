@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.time.Duration
 
 plugins {
     kotlin("jvm") version "2.3.21"
@@ -26,6 +27,7 @@ sourceSets.main {
 }
 
 tasks.test {
+    exclude("**/ElixirResponsivenessTest.class")
     // Native Core fixtures need only Spellixir and its platform dependencies. Loading every
     // bundled IDE plugin also starts unrelated services (including Vue's language server).
     systemProperty("idea.load.plugins.id", "com.cimere.spellixir")
@@ -33,6 +35,21 @@ tasks.test {
     systemProperty("spellixir.corpus.report", layout.buildDirectory.dir("reports/syntax-corpus").get().asFile.absolutePath)
     inputs.dir(layout.projectDirectory.dir("src/test/resources/corpus/phase1"))
     outputs.dir(layout.buildDirectory.dir("reports/syntax-corpus"))
+}
+
+intellijPlatformTesting.testIde.register("verifyNativeCoreResponsiveness") {
+    testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
+    task {
+        description = "Measure large-file Native Core parsing and incremental editor updates."
+        classpath += sourceSets.test.get().runtimeClasspath
+        include("**/ElixirResponsivenessTest.class")
+        // Avoid competing with the other verification suites when running check.
+        mustRunAfter(tasks.test, "verifySyntaxCorpus")
+        systemProperty("idea.load.plugins.id", "com.cimere.spellixir")
+        systemProperty("spellixir.responsiveness.report", layout.buildDirectory.file("reports/responsiveness/results.json").get().asFile.absolutePath)
+        outputs.upToDateWhen { false }
+        timeout.set(Duration.ofMinutes(5))
+    }
 }
 
 tasks.register<Exec>("verifySyntaxCorpus") {
@@ -44,6 +61,7 @@ tasks.register<Exec>("verifySyntaxCorpus") {
 
 tasks.check {
     dependsOn("verifySyntaxCorpus")
+    dependsOn("verifyNativeCoreResponsiveness")
 }
 
 group = "com.cimere.spellixir"
