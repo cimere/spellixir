@@ -120,7 +120,14 @@ val smokeProduct = when (smokeHost) {
     "pycharm" -> IntelliJPlatformType.PyCharm
     else -> error("Unsupported smokeHost '$smokeHost'; use idea, goland, or pycharm")
 }
-val smokeVersion = providers.gradleProperty("smokeVersion").orElse("latest")
+// runIde expects a concrete product version; the literal "latest" is not a download version.
+val smokeVersion = providers.gradleProperty("smokeVersion").orElse("2026.1.4").map { requested ->
+    if (requested == "latest") {
+        providers.exec {
+            commandLine("python3", "scripts/release_candidate.py", "latest-version", "--host", smokeHost)
+        }.standardOutput.asText.get().trim()
+    } else requested
+}
 val smokeWorkDirectory = layout.buildDirectory.dir("packaged-smoke/$smokeHost")
 val smokeRuntimeTraps = smokeWorkDirectory.map { it.dir("runtime-traps") }
 val smokePluginJar = smokeWorkDirectory.map { it.file("candidate-plugin.jar") }

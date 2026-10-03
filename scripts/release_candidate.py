@@ -12,8 +12,21 @@ import subprocess
 import tempfile
 import zipfile
 import xml.etree.ElementTree as ET
+import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def latest_version(host):
+    code = {'idea': 'IIU', 'goland': 'GO', 'pycharm': 'PCP'}[host]
+    url = f'https://data.services.jetbrains.com/products/releases?code={code}&type=release'
+    with urllib.request.urlopen(url, timeout=60) as response:
+        releases = json.load(response)[code]
+    supported = [release for release in releases
+                 if release['type'] == 'release' and release['build'].startswith('262.')]
+    require(supported, f'No stable 2026.2 release found for {host}')
+    release = max(supported, key=lambda item: tuple(int(part) for part in item['build'].split('.')))
+    return release['version']
 
 
 def require(condition, message):
@@ -265,6 +278,8 @@ def smoke(candidate, ide, work):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
+    latest = sub.add_parser('latest-version')
+    latest.add_argument('--host', choices=('idea', 'goland', 'pycharm'), required=True)
     package = sub.add_parser('freeze')
     package.add_argument('--archive', type=Path, required=True)
     package.add_argument('--probe', type=Path, required=True)
@@ -291,7 +306,9 @@ def main():
     prepare = sub.add_parser('prepare-smoke')
     prepare.add_argument('--work', type=Path, required=True)
     args = parser.parse_args()
-    if args.command == 'freeze':
+    if args.command == 'latest-version':
+        print(latest_version(args.host))
+    elif args.command == 'freeze':
         freeze(args.archive.resolve(), args.probe.resolve(), args.out.resolve())
     elif args.command == 'verify':
         print(json.dumps(verify(args.candidate.resolve()), indent=2))
