@@ -135,9 +135,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            shell: bash
           - os: windows-latest
-            shell: bash
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -147,7 +145,7 @@ jobs:
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
       - name: Run Native Core tests and plugin structure checks
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: ./gradlew test verifyNativeCoreResponsiveness verifyPluginStructure --console=plain
 
   marketplace-publish:
