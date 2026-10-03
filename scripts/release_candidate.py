@@ -114,6 +114,10 @@ def prepare_smoke(work):
 
 
 def freeze(archive, probe, target):
+    # Gradle prepares output-file parent directories before invoking an Exec task.
+    # Accept only that empty directory; never replace an existing candidate.
+    if target.is_dir() and not any(target.iterdir()):
+        target.rmdir()
     require(not target.exists(), 'Candidate directory already exists; use a new location')
     require(subprocess.run(['git', 'diff-index', '--quiet', 'HEAD', '--'], cwd=ROOT).returncode == 0,
             'Refusing to freeze a candidate while tracked source files are modified')
