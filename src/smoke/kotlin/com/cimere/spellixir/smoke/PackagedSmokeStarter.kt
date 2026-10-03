@@ -6,6 +6,7 @@ import com.cimere.spellixir.mix.MixProjectContext
 import com.cimere.spellixir.mix.MixProjectService
 import com.google.gson.GsonBuilder
 import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ApplicationStarter
@@ -16,8 +17,7 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
@@ -45,14 +45,20 @@ class PackagedSmokeStarter : ApplicationStarter {
             }
             checks.add("installed-plugin-classloader")
             Files.createDirectories(root)
-            val project = checkNotNull(ProjectManager.getInstance().createProject("Spellixir smoke", root.toString()))
+            val manager = ProjectManagerEx.getInstanceEx()
+            val project = checkNotNull(manager.openProject(root, OpenProjectTask(
+                isNewProject = true,
+                useDefaultProjectAsTemplate = false,
+                projectName = "Spellixir smoke",
+                runConfigurators = false,
+            )))
             try {
                 ApplicationManager.getApplication().invokeAndWait {
                     checkEditing(project, root, checks)
                     checkMix(project, root, checks)
                 }
             } finally {
-                ApplicationManager.getApplication().invokeAndWait { Disposer.dispose(project) }
+                ApplicationManager.getApplication().invokeAndWait { manager.forceCloseProject(project) }
             }
         } catch (error: Throwable) {
             failure = error
