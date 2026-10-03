@@ -178,13 +178,9 @@ jobs:
           JB_PRIVATE_KEY: ${{ secrets.JB_PRIVATE_KEY }}
           JB_PRIVATE_KEY_PASSWORD: ${{ secrets.JB_PRIVATE_KEY_PASSWORD }}
         run: |
-          ./gradlew signPlugin verifyPluginSignature --console=plain
+          ./gradlew signPlugin verifyPluginSignature --no-configuration-cache --console=plain
           python3 scripts/release_candidate.py verify-signed --candidate build/release-candidate --signed build/release-candidate/candidate-signed.zip
       - name: Smoke test the signed candidate in IDEA
-        env:
-          JB_CERTIFICATE_CHAIN: ${{ secrets.JB_CERTIFICATE_CHAIN }}
-          JB_PRIVATE_KEY: ${{ secrets.JB_PRIVATE_KEY }}
-          JB_PRIVATE_KEY_PASSWORD: ${{ secrets.JB_PRIVATE_KEY_PASSWORD }}
         run: >-
           ./gradlew packagedSmoke
           -PsmokeHost=idea
@@ -207,7 +203,7 @@ jobs:
           JB_PRIVATE_KEY: ${{ secrets.JB_PRIVATE_KEY }}
           JB_PRIVATE_KEY_PASSWORD: ${{ secrets.JB_PRIVATE_KEY_PASSWORD }}
           JB_MARKETPLACE_TOKEN: ${{ secrets.JB_MARKETPLACE_TOKEN }}
-        run: ./gradlew publishPlugin --console=plain
+        run: ./gradlew publishPlugin --no-configuration-cache --console=plain
       - uses: actions/upload-artifact@v4
         if: always()
         with:
