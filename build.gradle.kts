@@ -91,6 +91,19 @@ val verifyReleaseCandidate = tasks.register<Exec>("verifyReleaseCandidate") {
     inputs.file(candidateManifest)
 }
 
+val signingCertificateFile = layout.buildDirectory.file("signing/certificate-chain.pem")
+val signingCertificate = providers.environmentVariable("JB_CERTIFICATE_CHAIN")
+val prepareSigningCertificate = tasks.register("prepareSigningCertificate") {
+    inputs.property("certificateChain", signingCertificate)
+    outputs.file(signingCertificateFile)
+    doLast {
+        signingCertificateFile.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(signingCertificate.get())
+        }
+    }
+}
+
 intellijPlatform {
     pluginVerification {
         ides {
@@ -104,7 +117,9 @@ intellijPlatform {
         }
     }
     signing {
-        certificateChain.set(providers.environmentVariable("JB_CERTIFICATE_CHAIN"))
+        // Use a file for both signing and verification: the pinned Gradle plugin's
+        // inline-certificate verification adds the PEM contents as an extra CLI arg.
+        certificateChainFile.set(signingCertificateFile)
         privateKey.set(providers.environmentVariable("JB_PRIVATE_KEY"))
         password.set(providers.environmentVariable("JB_PRIVATE_KEY_PASSWORD"))
     }
@@ -156,6 +171,7 @@ val packagedSmoke = intellijPlatformTesting.runIde.register("packagedSmoke") {
     }
     task {
         timeout.set(Duration.ofMinutes(5))
+        sandboxLogDirectory.set(smokeWorkDirectory.map { it.dir("logs") })
         dependsOn(verifyReleaseCandidate, prepareSmokeRuntimeTraps)
         if (!providers.gradleProperty("smokeProbeArchive").isPresent) {
             dependsOn(smokeProbeZip)
@@ -186,7 +202,7 @@ tasks.named<VerifyPluginTask>("verifyPlugin") {
 tasks.named<SignPluginTask>("signPlugin") {
     archiveFile.set(candidateArchive)
     signedArchiveFile.set(candidateDirectory.map { it.file("candidate-signed.zip") })
-    dependsOn(verifyReleaseCandidate)
+    dependsOn(verifyReleaseCandidate, prepareSigningCertificate)
 }
 
 tasks.named<VerifyPluginSignatureTask>("verifyPluginSignature") {
