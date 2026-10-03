@@ -8,6 +8,13 @@ IntelliJ IDEA, GoLand, and PyCharm are the Supported Hosts. The automated matrix
 
 The Native Core does not require Elixir, Erlang/OTP, Mix, or a language server. The smoke test puts trap executables for those commands first on `PATH` and fails if any is invoked.
 
+GoLand requires a valid IDE license even for this headless application starter.
+A missing license stops startup with `No valid license found` (exit code 7), before
+the probe runs. This is a blocking smoke failure, not a passing or skipped host.
+License provisioning for the CI sandbox must be configured before the full release
+matrix can pass. Do not commit activation keys or include sandbox configuration
+directories in uploaded artifacts; the smoke artifacts retain only reports and IDE logs.
+
 ## What each gate proves
 
 Every pull request runs `check` (including the syntax corpus and responsiveness test), builds the plugin and smoke probe, checks plugin structure, and verifies repeatable Grammar-Kit output. It then freezes and validates the candidate ZIP.

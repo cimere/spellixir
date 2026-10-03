@@ -125,7 +125,10 @@ jobs:
         if: always()
         with:
           name: packaged-smoke-${{ matrix.host }}-${{ strategy.job-index }}-${{ github.sha }}
-          path: build/packaged-smoke/${{ matrix.host }}/
+          path: |
+            build/packaged-smoke/${{ matrix.host }}/
+            .intellijPlatform/sandbox/**/log_packagedSmoke/idea.log*
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 14
 
