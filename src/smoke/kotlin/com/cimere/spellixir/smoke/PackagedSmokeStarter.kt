@@ -46,12 +46,12 @@ class PackagedSmokeStarter : ApplicationStarter {
             checks.add("installed-plugin-classloader")
             Files.createDirectories(root)
             val manager = ProjectManagerEx.getInstanceEx()
-            val project = checkNotNull(manager.openProject(root, OpenProjectTask(
-                isNewProject = true,
-                useDefaultProjectAsTemplate = false,
-                projectName = "Spellixir smoke",
-                runConfigurators = false,
-            )))
+            val project = checkNotNull(manager.openProject(root, OpenProjectTask {
+                isNewProject = true
+                useDefaultProjectAsTemplate = false
+                projectName = "Spellixir smoke"
+                runConfigurators = false
+            }))
             try {
                 ApplicationManager.getApplication().invokeAndWait {
                     checkEditing(project, root, checks)

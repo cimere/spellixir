@@ -49,7 +49,6 @@ jobs:
 
   plugin-verifier:
     name: Verify exact candidate against supported platform lines
-    if: github.event_name != 'pull_request'
     needs: candidate
     runs-on: ubuntu-latest
     steps:
@@ -77,7 +76,6 @@ jobs:
 
   packaged-host-smoke:
     name: Packaged smoke on ${{ matrix.host }} ${{ matrix.version }}
-    if: github.event_name != 'pull_request'
     needs: candidate
     runs-on: ubuntu-latest
     strategy:
@@ -131,7 +129,6 @@ jobs:
 
   native-core-platforms:
     name: Native Core on ${{ matrix.os }}
-    if: github.event_name != 'pull_request'
     needs: candidate
     strategy:
       fail-fast: false
