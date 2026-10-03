@@ -4,9 +4,7 @@ import argparse
 import hashlib
 import io
 import json
-import os
 from pathlib import Path, PurePosixPath
-import platform
 import shutil
 import subprocess
 import tempfile
@@ -211,70 +209,6 @@ def verify_smoke(candidate, archive, report, runtime_attempted, host, version):
     print(json.dumps(result, indent=2))
 
 
-def product_info(ide):
-    for path in (ide / 'product-info.json', ide / 'Resources/product-info.json', ide / 'Contents/Resources/product-info.json'):
-        if path.is_file():
-            return path, json.loads(path.read_text())
-    raise ValueError(f'No product-info.json in {ide}')
-
-
-def smoke(candidate, ide, work):
-    metadata = verify(candidate)
-    info_path, info = product_info(ide)
-    require(not work.exists(), 'Smoke workspace already exists; use a fresh path')
-    work.mkdir(parents=True)
-    plugins = work / 'plugins'
-    plugins.mkdir()
-    with zipfile.ZipFile(candidate / 'candidate.zip') as archive:
-        safe_names(archive)
-        archive.extractall(plugins)
-    with zipfile.ZipFile(candidate / 'smoke-probe.zip') as archive:
-        safe_names(archive)
-        archive.extractall(plugins)
-    os_name = {'Darwin': 'macOS', 'Linux': 'Linux', 'Windows': 'Windows'}[platform.system()]
-    arch = 'aarch64' if platform.machine().lower() in ('arm64', 'aarch64') else 'amd64'
-    launch = next(x for x in info['launch'] if x['os'] == os_name and x['arch'] in (arch, 'x86_64' if arch == 'amd64' else arch))
-    launcher = (info_path.parent / launch['launcherPath']).resolve()
-    base_vm = (info_path.parent / launch['vmOptionsFilePath']).resolve().read_text()
-    vm_options = work / 'smoke.vmoptions'
-    vm_options.write_text(base_vm + '\n' + '\n'.join([
-        '-Djava.awt.headless=true', '-Didea.trust.all.projects=true',
-        '-Didea.initially.ask.config=false', '-Dide.show.tips.on.startup.default.value=false',
-        '-Didea.load.plugins.id=com.cimere.spellixir,com.cimere.spellixir.smoke',
-        *[f'-Didea.{key}.path={work / key}' for key in ('config', 'system', 'plugins', 'log')],
-    ]) + '\n')
-    env = os.environ.copy()
-    env[info['envVarBaseName'] + '_VM_OPTIONS'] = str(vm_options)
-    trap = work / 'runtime-traps'
-    trap.mkdir()
-    for tool in ('elixir', 'elixirc', 'mix', 'erl', 'escript'):
-        if os.name == 'nt':
-            (trap / (tool + '.cmd')).write_text('@echo off\necho attempted > "%SPELLIXIR_RUNTIME_ATTEMPT%"\nexit /b 93\n')
-        else:
-            script = trap / tool
-            script.write_text('#!/bin/sh\necho attempted > "$SPELLIXIR_RUNTIME_ATTEMPT"\nexit 93\n')
-            script.chmod(0o755)
-    env['SPELLIXIR_RUNTIME_ATTEMPT'] = str(work / 'runtime-attempted')
-    env['PATH'] = str(trap) + os.pathsep + (os.environ['SystemRoot'] + '\\System32' if os.name == 'nt' else '/usr/bin:/bin')
-    for name in ('JAVA_HOME', 'JDK_HOME', 'IDEA_JDK', 'GOLAND_JDK', 'PYCHARM_JDK', 'ERL_LIBS', 'ERL_FLAGS', 'ELIXIR_ERL_OPTIONS'):
-        env.pop(name, None)
-    report = work / 'smoke.json'
-    with (work / 'launcher.log').open('w') as log:
-        result = subprocess.run([str(launcher), 'spellixirSmoke', str(work / 'project'), str(report)],
-                                env=env, stdout=log, stderr=subprocess.STDOUT, timeout=180)
-    require(result.returncode == 0, f'IDE failed ({result.returncode}); inspect {work / "launcher.log"}')
-    require(report.is_file(), 'IDE exited without running the smoke probe')
-    result = json.loads(report.read_text())
-    require(result['passed'], f'Smoke checks failed: {result}')
-    require(result['build'] == info['productCode'] + '-' + info['buildNumber'], 'Unexpected running IDE build')
-    require(not (work / 'runtime-attempted').exists(), 'Native Core attempted to launch an Elixir/OTP tool')
-    verify(candidate)
-    result.update({'candidateSha256': metadata['files']['candidate.zip'], 'runtimeIndependent': True,
-                   'host': info['name'], 'version': info['version'], 'os': os_name, 'arch': arch})
-    report.write_text(json.dumps(result, indent=2) + '\n')
-    print(json.dumps(result, indent=2))
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
@@ -286,10 +220,6 @@ def main():
     package.add_argument('--out', type=Path, required=True)
     check = sub.add_parser('verify')
     check.add_argument('--candidate', type=Path, required=True)
-    run = sub.add_parser('smoke')
-    run.add_argument('--candidate', type=Path, required=True)
-    run.add_argument('--ide', type=Path, required=True)
-    run.add_argument('--work', type=Path, required=True)
     signed = sub.add_parser('verify-signed')
     signed.add_argument('--candidate', type=Path, required=True)
     signed.add_argument('--signed', type=Path, required=True)
@@ -321,8 +251,6 @@ def main():
         extract_plugin_jar(args.archive.resolve(), args.out.resolve())
     elif args.command == 'prepare-smoke':
         prepare_smoke(args.work.resolve())
-    else:
-        smoke(args.candidate.resolve(), args.ide.resolve(), args.work.resolve())
 
 
 if __name__ == '__main__':

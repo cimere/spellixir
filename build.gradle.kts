@@ -155,6 +155,7 @@ val packagedSmoke = intellijPlatformTesting.runIde.register("packagedSmoke") {
         dependsOn(extractSmokePlugin)
     }
     task {
+        timeout.set(Duration.ofMinutes(5))
         dependsOn(verifyReleaseCandidate, prepareSmokeRuntimeTraps)
         if (!providers.gradleProperty("smokeProbeArchive").isPresent) {
             dependsOn(smokeProbeZip)
