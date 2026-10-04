@@ -1,6 +1,7 @@
 <idea-plugin>
   <id>com.cimere.spellixir</id>
   <name>Spellixir</name>
+  <description><![CDATA[Elixir file recognition, syntax highlighting, tolerant parsing, and Mix-project detection for JetBrains IDEs.]]></description>
   <vendor>cimere</vendor>
 
   <depends>com.intellij.modules.platform</depends>

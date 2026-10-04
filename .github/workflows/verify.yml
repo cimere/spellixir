@@ -1,0 +1,211 @@
+name: Verify Spellixir
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      publishMarketplace:
+        description: Publish the signed candidate to JetBrains Marketplace
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  candidate:
+    name: Build and freeze IDEA baseline candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check release candidate preservation and host selection
+        run: python3 scripts/test_release_candidate.py
+      - name: Run Native Core checks and package the plugin
+        run: ./gradlew check buildPlugin smokeProbeZip verifyPluginStructure freezeReleaseCandidate --console=plain
+      - name: Verify deterministic Grammar-Kit generation
+        run: python3 scripts/verify_generated_sources.py
+      - name: Verify frozen candidate
+        run: python3 scripts/release_candidate.py verify --candidate build/release-candidate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate-${{ github.sha }}
+          path: build/release-candidate/
+          if-no-files-found: error
+          retention-days: 14
+
+  plugin-verifier:
+    name: Verify exact candidate against supported platform lines
+    needs: candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-${{ github.sha }}
+          path: build/release-candidate
+      - name: Verify candidate provenance
+        run: python3 scripts/release_candidate.py verify --candidate build/release-candidate
+      - name: Run Plugin Verifier on the frozen candidate ZIP
+        run: ./gradlew verifyPlugin --console=plain
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plugin-verifier-report-${{ github.sha }}
+          path: build/reports/pluginVerifier/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  packaged-host-smoke:
+    name: Packaged smoke on ${{ matrix.host }} ${{ matrix.version }}
+    needs: candidate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - host: idea
+            version: '2026.1.4'
+          - host: idea
+            version: latest
+          - host: pycharm
+            version: latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-${{ github.sha }}
+          path: build/release-candidate
+      - name: Verify candidate provenance
+        run: python3 scripts/release_candidate.py verify --candidate build/release-candidate
+      - name: Run packaged plugin smoke
+        run: >-
+          ./gradlew packagedSmoke
+          -PsmokeHost=${{ matrix.host }}
+          -PsmokeVersion=${{ matrix.version }}
+          -PsmokeProbeArchive=build/release-candidate/smoke-probe.zip
+          --console=plain
+      - name: Validate smoke report and runtime independence
+        run: >-
+          python3 scripts/release_candidate.py verify-smoke
+          --candidate build/release-candidate
+          --archive build/release-candidate/candidate.zip
+          --report build/packaged-smoke/${{ matrix.host }}/smoke.json
+          --runtime-attempted build/packaged-smoke/${{ matrix.host }}/runtime-attempted
+          --host ${{ matrix.host }}
+          --version ${{ matrix.version }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: packaged-smoke-${{ matrix.host }}-${{ strategy.job-index }}-${{ github.sha }}
+          path: |
+            build/packaged-smoke/${{ matrix.host }}/
+            .intellijPlatform/sandbox/**/log_packagedSmoke/idea.log*
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 14
+
+  native-core-platforms:
+    name: Native Core on ${{ matrix.os }}
+    needs: candidate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+          - os: windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Run Native Core tests and plugin structure checks
+        shell: bash
+        run: ./gradlew test verifyNativeCoreResponsiveness verifyPluginStructure --console=plain
+
+  marketplace-publish:
+    name: Sign, smoke, and publish the approved candidate
+    if: github.event_name == 'workflow_dispatch' && inputs.publishMarketplace && startsWith(github.ref, 'refs/tags/v')
+    needs: [candidate, plugin-verifier, packaged-host-smoke, native-core-platforms]
+    runs-on: ubuntu-latest
+    environment: marketplace-release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-${{ github.sha }}
+          path: build/release-candidate
+      - name: Verify candidate provenance
+        run: python3 scripts/release_candidate.py verify --candidate build/release-candidate
+      - name: Sign and verify the frozen candidate
+        env:
+          JB_CERTIFICATE_CHAIN: ${{ secrets.JB_CERTIFICATE_CHAIN }}
+          JB_PRIVATE_KEY: ${{ secrets.JB_PRIVATE_KEY }}
+          JB_PRIVATE_KEY_PASSWORD: ${{ secrets.JB_PRIVATE_KEY_PASSWORD }}
+        run: |
+          ./gradlew signPlugin verifyPluginSignature --no-configuration-cache --console=plain
+          python3 scripts/release_candidate.py verify-signed --candidate build/release-candidate --signed build/release-candidate/candidate-signed.zip
+      - name: Smoke test the signed candidate in IDEA
+        run: >-
+          ./gradlew packagedSmoke
+          -PsmokeHost=idea
+          -PsmokeVersion=latest
+          -PsmokeArchive=build/release-candidate/candidate-signed.zip
+          -PsmokeProbeArchive=build/release-candidate/smoke-probe.zip
+          --console=plain
+      - name: Validate signed packaged smoke
+        run: >-
+          python3 scripts/release_candidate.py verify-smoke
+          --candidate build/release-candidate
+          --archive build/release-candidate/candidate-signed.zip
+          --report build/packaged-smoke/idea/smoke.json
+          --runtime-attempted build/packaged-smoke/idea/runtime-attempted
+          --host idea
+          --version latest
+      - name: Publish the exact verified signed ZIP
+        env:
+          JB_CERTIFICATE_CHAIN: ${{ secrets.JB_CERTIFICATE_CHAIN }}
+          JB_PRIVATE_KEY: ${{ secrets.JB_PRIVATE_KEY }}
+          JB_PRIVATE_KEY_PASSWORD: ${{ secrets.JB_PRIVATE_KEY_PASSWORD }}
+          JB_MARKETPLACE_TOKEN: ${{ secrets.JB_MARKETPLACE_TOKEN }}
+        run: ./gradlew publishPlugin --no-configuration-cache --console=plain
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: signed-release-${{ github.sha }}
+          path: build/release-candidate/candidate-signed.zip
+          if-no-files-found: ignore
+          retention-days: 90

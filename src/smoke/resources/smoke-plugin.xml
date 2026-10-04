@@ -1,0 +1,12 @@
+<idea-plugin>
+  <id>com.cimere.spellixir.smoke</id>
+  <name>Spellixir packaged smoke probe</name>
+  <version>1</version>
+  <vendor>cimere</vendor>
+  <idea-version since-build="261.26222.65" until-build="262.*" />
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.cimere.spellixir</depends>
+  <extensions defaultExtensionNs="com.intellij">
+    <appStarter id="spellixirSmoke" implementation="com.cimere.spellixir.smoke.PackagedSmokeStarter" />
+  </extensions>
+</idea-plugin>
