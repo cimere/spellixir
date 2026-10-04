@@ -88,8 +88,6 @@ jobs:
             version: '2026.1.4'
           - host: idea
             version: latest
-          - host: goland
-            version: latest
           - host: pycharm
             version: latest
     steps:
