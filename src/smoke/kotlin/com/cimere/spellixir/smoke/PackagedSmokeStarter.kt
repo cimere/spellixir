@@ -35,11 +35,13 @@ class PackagedSmokeStarter : ApplicationStarter {
         val report = Path.of(args[2])
         val checks = mutableListOf<String>()
         var failure: Throwable? = null
+        var installedPluginPath: String? = null
         try {
             val plugin = checkNotNull(PluginManagerCore.getPlugin(PluginId.getId("com.cimere.spellixir")))
             check(plugin.isEnabled) { "Packaged plugin is disabled" }
             check(ElixirFileType.javaClass.classLoader == plugin.pluginClassLoader) { "Production class escaped plugin classloader" }
             val pluginPath = plugin.pluginPath.toAbsolutePath().normalize()
+            installedPluginPath = pluginPath.toString()
             check(pluginPath.parent.fileName.toString().startsWith("plugins_packagedSmoke")) {
                 "Production class was not loaded from the installed candidate"
             }
@@ -69,6 +71,7 @@ class PackagedSmokeStarter : ApplicationStarter {
             "build" to ApplicationInfo.getInstance().build.asString(),
             "version" to ApplicationInfo.getInstance().fullVersion,
             "host" to System.getProperty("spellixir.smoke.host"),
+            "pluginPath" to installedPluginPath,
             "checks" to checks,
             "failure" to failure?.stackTraceToString(),
         )))

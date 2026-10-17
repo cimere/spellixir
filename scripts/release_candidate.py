@@ -66,6 +66,8 @@ def inspect_archive(path):
                     for entry in safe_names(jar):
                         require(not any(x in entry.lower() for x in ('/smoke/', '/corpus/', 'tree_sitter', 'org/junit/', 'elixirresponsivenesstest')), f'Test asset in JAR: {entry}')
                         if entry == 'META-INF/plugin.xml':
+                            require(PurePosixPath(name).parent == PurePosixPath(next(iter(roots))) / 'lib',
+                                    f'Plugin descriptor JAR must be in the plugin lib directory: {name}')
                             descriptors.append(ET.fromstring(jar.read(entry)))
                         if entry.endswith('.class'):
                             classes.add(entry)
@@ -103,14 +105,42 @@ def inspect_probe(path):
                 'Unexpected smoke probe dependencies')
 
 
-def extract_plugin_jar(archive_path, output):
-    inspect_archive(archive_path)
+def verify_installed_archive(archive_path, directory):
     with zipfile.ZipFile(archive_path) as archive:
-        jars = [name for name in safe_names(archive) if name.endswith('.jar')]
-        require(len(jars) == 1, 'Candidate must contain exactly one plugin JAR')
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_bytes(archive.read(jars[0]))
-    print(json.dumps({'archive': str(archive_path), 'pluginJar': str(output), 'sha256': digest(output)}, indent=2))
+        names = safe_names(archive)
+        root = {PurePosixPath(name).parts[0] for name in names}
+        require(root == {directory.name}, 'Installed plugin directory differs from the ZIP root')
+        expected = {PurePosixPath(name).relative_to(directory.name).as_posix(): archive.read(name)
+                    for name in names if not archive.getinfo(name).is_dir()}
+    entries = list(directory.rglob('*'))
+    require(not any(path.is_symlink() for path in entries), 'Symlink in installed plugin')
+    actual = {path.relative_to(directory).as_posix(): path for path in entries if path.is_file()}
+    require(actual.keys() == expected.keys(), 'Installed plugin file set differs from the candidate ZIP')
+    require(all(actual[name].read_bytes() == data for name, data in expected.items()),
+            'Installed plugin contents differ from the candidate ZIP')
+
+
+def install_smoke_archive(archive_path, directory):
+    inspect_archive(archive_path)
+    require(directory.parent.name.startswith('plugins_packagedSmoke'), 'Not a packaged smoke sandbox')
+    require(not directory.is_symlink(), 'Refusing to replace a symlink plugin directory')
+    with zipfile.ZipFile(archive_path) as archive:
+        names = safe_names(archive)
+        require({PurePosixPath(name).parts[0] for name in names} == {directory.name},
+                'Candidate ZIP root differs from the sandbox plugin directory')
+        directory.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='candidate-install-', dir=directory.parent) as temporary:
+            archive.extractall(temporary)
+            staged = Path(temporary) / directory.name
+            verify_installed_archive(archive_path, staged)
+            # Discard the development plugin prepared by Gradle, including stale files.
+            # Only the complete, unmodified ZIP payload may remain in the sandbox.
+            if directory.exists():
+                shutil.rmtree(directory)
+            staged.rename(directory)
+    verify_installed_archive(archive_path, directory)
+    print(json.dumps({'archive': str(archive_path), 'pluginDirectory': str(directory),
+                      'sha256': digest(archive_path)}, indent=2))
 
 
 def prepare_smoke(work):
@@ -202,9 +232,11 @@ def verify_smoke(candidate, archive, report, runtime_attempted, host, version):
         'umbrella-child', 'standalone', 'malformed-metadata',
     }
     require(required_checks.issubset(set(result.get('checks', []))), 'Smoke report is missing required behavior checks')
+    require(result.get('pluginPath'), 'Smoke report has no installed plugin path')
+    verify_installed_archive(archive, Path(result['pluginPath']))
     require(not runtime_attempted.exists(), f'Native Core attempted to launch Elixir/OTP: {runtime_attempted}')
     result.update({'candidateSha256': metadata['files']['candidate.zip'], 'smokeArchiveSha256': archive_hash,
-                   'runtimeIndependent': True})
+                   'runtimeIndependent': True, 'installedPackageVerified': True})
     report.write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result, indent=2))
 
@@ -230,9 +262,9 @@ def main():
     smoke_report.add_argument('--runtime-attempted', type=Path, required=True)
     smoke_report.add_argument('--host', choices=('idea', 'goland', 'pycharm'), required=True)
     smoke_report.add_argument('--version', required=True)
-    extract = sub.add_parser('extract-plugin-jar')
-    extract.add_argument('--archive', type=Path, required=True)
-    extract.add_argument('--out', type=Path, required=True)
+    install = sub.add_parser('install-smoke-archive')
+    install.add_argument('--archive', type=Path, required=True)
+    install.add_argument('--plugin-directory', type=Path, required=True)
     prepare = sub.add_parser('prepare-smoke')
     prepare.add_argument('--work', type=Path, required=True)
     args = parser.parse_args()
@@ -247,8 +279,8 @@ def main():
     elif args.command == 'verify-smoke':
         verify_smoke(args.candidate.resolve(), args.archive.resolve(), args.report.resolve(),
                      args.runtime_attempted.resolve(), args.host, args.version)
-    elif args.command == 'extract-plugin-jar':
-        extract_plugin_jar(args.archive.resolve(), args.out.resolve())
+    elif args.command == 'install-smoke-archive':
+        install_smoke_archive(args.archive.resolve(), args.plugin_directory.absolute())
     elif args.command == 'prepare-smoke':
         prepare_smoke(args.work.resolve())
 
