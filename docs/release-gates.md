@@ -8,6 +8,14 @@ IntelliJ IDEA, GoLand, and PyCharm are the Supported Hosts. The automated matrix
 
 The Native Core does not require Elixir, Erlang/OTP, Mix, or a language server. The smoke test puts trap executables for those commands first on `PATH` and fails if any is invoked.
 
+Before each packaged smoke run, the complete candidate ZIP is extracted into the
+IDE sandbox, preserving its plugin directory, JARs, and external resources. It
+replaces the development plugin that Gradle prepared; no extracted JAR is repackaged.
+The descriptor JAR must be under the plugin's `lib/` directory. After the IDE runs,
+the probe reports the loaded plugin path and `verify-smoke` compares every installed
+file with the selected ZIP, rejecting missing, changed, or extra files. The signed
+candidate uses the same installation and payload checks.
+
 GoLand is checked by Plugin Verifier, but its packaged startup smoke test is excluded from the release gate because the headless IDE requires activation. Installation and runtime behavior on GoLand have not been verified by this matrix. Smoke artifacts retain reports and IDE logs, never sandbox configuration or activation keys.
 
 ## What each gate proves

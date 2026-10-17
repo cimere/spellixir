@@ -6,6 +6,7 @@ import org.jetbrains.intellij.platform.gradle.tasks.SignPluginTask
 import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginSignatureTask
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
+import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 import java.time.Duration
 
 plugins {
@@ -145,15 +146,6 @@ val smokeVersion = providers.gradleProperty("smokeVersion").orElse("2026.1.4").m
 }
 val smokeWorkDirectory = layout.buildDirectory.dir("packaged-smoke/$smokeHost")
 val smokeRuntimeTraps = smokeWorkDirectory.map { it.dir("runtime-traps") }
-val smokePluginJar = smokeWorkDirectory.map { it.file("candidate-plugin.jar") }
-val extractSmokePlugin = tasks.register<Exec>("extractSmokePlugin") {
-    group = "verification"
-    dependsOn(verifyReleaseCandidate)
-    commandLine("python3", "scripts/release_candidate.py", "extract-plugin-jar",
-        "--archive", smokeArchive.get(), "--out", smokePluginJar.get().asFile)
-    inputs.file(smokeArchive)
-    outputs.file(smokePluginJar)
-}
 val prepareSmokeRuntimeTraps = tasks.register<Exec>("prepareSmokeRuntimeTraps") {
     group = "verification"
     commandLine("python3", "scripts/release_candidate.py", "prepare-smoke", "--work", smokeWorkDirectory.get().asFile)
@@ -165,13 +157,9 @@ val packagedSmoke = intellijPlatformTesting.runIde.register("packagedSmoke") {
     plugins {
         localPlugin(smokeProbeArchive.get().asFile)
     }
-    prepareSandboxTask {
-        pluginJar.set(smokePluginJar)
-        dependsOn(extractSmokePlugin)
-    }
     task {
         timeout.set(Duration.ofMinutes(5))
-        dependsOn(verifyReleaseCandidate, prepareSmokeRuntimeTraps)
+        dependsOn(verifyReleaseCandidate, prepareSmokeRuntimeTraps, "installSmokeCandidate")
         if (!providers.gradleProperty("smokeProbeArchive").isPresent) {
             dependsOn(smokeProbeZip)
         }
@@ -191,6 +179,16 @@ val packagedSmoke = intellijPlatformTesting.runIde.register("packagedSmoke") {
             smokeWorkDirectory.get().file("smoke.json").asFile.absolutePath,
         )
     }
+}
+
+tasks.register<Exec>("installSmokeCandidate") {
+    group = "verification"
+    val sandbox = tasks.named<PrepareSandboxTask>("prepareSandbox_packagedSmoke")
+    dependsOn(verifyReleaseCandidate, sandbox)
+    inputs.file(smokeArchive)
+    // Always restore the exact ZIP payload after Gradle has prepared its sandbox.
+    commandLine("python3", "scripts/release_candidate.py", "install-smoke-archive",
+        "--archive", smokeArchive.get(), "--plugin-directory", sandbox.get().pluginDirectory.get().asFile)
 }
 
 tasks.named<VerifyPluginTask>("verifyPlugin") {
